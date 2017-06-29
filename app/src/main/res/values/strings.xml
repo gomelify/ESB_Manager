@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Vertretungsplan</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="class_preference_title">Klassenauswahl</string>
+    <string name="sync_preference_title">Synchronisieren</string>
+    <string name="login">Bestätigen</string>
+    <string name="username">Benutzername</string>
+    <string name="password">Passwort</string>
+    <string name="login_failed">Bitte füllen Sie die Felder aus</string>
+    <string name="action_login">Anmelden</string>
+    <string name="anmelden">Anmelden</string>
+    <string name="title_activity_navigation">activity_navigation</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+</resources>
