@@ -93,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
             //Proceed Userdata to HttpRequest
             handler.proceed(user, pass);
 
-            //LOGIN: "spranger15", "vplan4712"
         }
     }
 

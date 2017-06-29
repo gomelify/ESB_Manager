@@ -9,7 +9,7 @@ import org.jsoup.nodes.Document;
 
 public class ParserClass extends AsyncTask<Void, Void, Void>{
 
-    String words;
+    private String words;
 
     @Override
     protected Void doInBackground(Void... params) {
