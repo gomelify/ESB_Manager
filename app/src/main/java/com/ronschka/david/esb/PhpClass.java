@@ -12,6 +12,7 @@ import java.io.IOException;
 
 public class PhpClass extends AsyncTask<Void, Void, Void> {
 
+    //Do this, if SettingsActivity is created
     private Context mContext;
 
     public void setContext(Context context){
@@ -25,14 +26,18 @@ public class PhpClass extends AsyncTask<Void, Void, Void> {
             Document list = Jsoup.connect("http://www.esb-hamm.de/app/kuerzel_infosystem.php")
                     .get();
             String classList = list.text();
-            String[] classArray = classList.split(",");
-            SharedPreferences classListStorage = mContext.getSharedPreferences("classList", 0);
+
+            //set phpData from Settings to received php String
+            SettingsActivity.phpData = classList;
+
+            //Store the phpData in an Preference -> is used in SettingsActivity
+            SharedPreferences classListStorage = mContext.getSharedPreferences("phpData", 0);
             SharedPreferences.Editor editor = classListStorage.edit();
-            editor.putString(classList, "");
+            editor.putString("PHP", classList);
             editor.apply();
 
-            String test = classListStorage.getString("List", "");
-            Log.d("ESBLOG", test);
+            Log.d("ESBLOG", classList);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
