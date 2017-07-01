@@ -3,7 +3,6 @@
     package="com.ronschka.david.esb">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    //1
     <application
         android:allowBackup="true"
         android:icon="@mipmap/esb_icon"
