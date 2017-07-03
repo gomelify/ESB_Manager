@@ -3,11 +3,12 @@ package com.ronschka.david.esb;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +25,9 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
+    //Shared Preference used for classList value
+    SharedPreferences sharePref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,13 +40,19 @@ public class MainActivity extends AppCompatActivity {
         ParserClass pars = new ParserClass();
         pars.execute();
 
-        Log.d("ESBLOG","After Parsing");
+        PhpClass php = new PhpClass();
+        php.setContext(getApplicationContext());
+        php.execute();
+
+        //What is saved into Preference (class) List? Default is x!
+        sharePref = PreferenceManager.getDefaultSharedPreferences(this);
+        String classListValue = sharePref.getString("classList", "x");
 
         //WebView
         final WebView web = (WebView) findViewById(R.id.web_view);
         web.setWebViewClient(new MyWebViewClient());
         web.getSettings().setJavaScriptEnabled(true); //For selection of elements
-        web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=GO12");
+        web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=" + classListValue);
 
         //Animations
         final Animation fab_sync = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_sync);
@@ -52,8 +62,13 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                //What is saved into Preference (class) List? Default is x!
+                sharePref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                String classListValue = sharePref.getString("classList", "x");
+
                 fab.startAnimation(fab_sync);
-                web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=GO12");
+                web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=" + classListValue);
             }
         });
     }
@@ -121,12 +136,15 @@ public class MainActivity extends AppCompatActivity {
                     edit.putString("Psw",mPassword.getText().toString());
                     edit.apply();
 
-
                     //Loads the page with the user and password input
                     WebView web = (WebView) findViewById(R.id.web_view);
                     web.setWebViewClient(new MyWebViewClient());
                     web.getSettings().setJavaScriptEnabled(true); //Für Klassenauswahl
-                    web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=GO12");
+
+                    //get the users class preference
+                    sharePref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                    String classListValue = sharePref.getString("classList", "x"); //What is saved into Preference List? Default is x!
+                    web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=" + classListValue);
                     dialog.dismiss();
                 }
                 else{
@@ -146,6 +164,26 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_search, menu);
+        MenuItem item = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView)item.getActionView();
+        searchView.setQueryHint(getString(R.string.searchViewHint));
+
+        //text listener for the searchView
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                WebView web = (WebView)findViewById(R.id.web_view);
+                web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=" + query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
         return true;
     }
 

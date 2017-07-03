@@ -9,12 +9,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 public class PhpClass extends AsyncTask<Void, Void, Void> {
 
     //Do this, if SettingsActivity is created
     private Context mContext;
 
+    //important for preferences!
     public void setContext(Context context){
         mContext = context;
     }
@@ -23,9 +26,15 @@ public class PhpClass extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
 
         try {
-            Document list = Jsoup.connect("http://www.esb-hamm.de/app/kuerzel_infosystem.php")
-                    .get();
+            URL url = new URL("http://www.esb-hamm.de/app/kuerzel_infosystem.php");
+            InputStream in = url.openStream();
+
+            Document list = Jsoup.parse(in,"ISO-8859-1", "http://www.esb-hamm.de/app/");
             String classList = list.text();
+
+            //edit the output
+            classList = classList.replace('"',' ');
+            classList = classList.replaceAll(" ","");
 
             //set phpData from Settings to received php String
             SettingsActivity.phpData = classList;

@@ -4,6 +4,7 @@ package com.ronschka.david.esb;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.ListPreference;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,25 +16,14 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        PhpClass phpClass = new PhpClass();
-        phpClass.setContext(getApplicationContext());
-        phpClass.execute();
-
+        setPhpData();
         getFragmentManager().beginTransaction().
                 replace(android.R.id.content, new PrefsFragment()).commit();
-
-        setPhpData();
     }
 
     public void setPhpData(){
-        if(!(phpData=="Error!")) {
             SharedPreferences pref = getSharedPreferences("phpData", 0);
             phpData = pref.getString("PHP", "");
-        }
-        else{
-            Log.d("ESBLOG", "BUGG2!!");
-        }
     }
 
     public static class PrefsFragment extends PreferenceFragment {
@@ -47,6 +37,16 @@ public class SettingsActivity extends AppCompatActivity {
 
             final ListPreference listPreference = (ListPreference) findPreference("classList");
             setListPreferenceData(listPreference);
+
+            listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                //If the User changes the preferred school class..
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    //..the new value will be saved!
+                    listPreference.setValue(newValue.toString());
+                    return false;
+                }
+            });
         }
 
         protected static void setListPreferenceData(ListPreference lp) {
@@ -62,19 +62,18 @@ public class SettingsActivity extends AppCompatActivity {
                 teacherArray = teacherList.split(",");
 
                 String classList = phpArray[1].toString();
-                classArray = teacherList.split(",");
+                classArray = classList.split(",");
 
                 String roomList = phpArray[2].toString();
-                roomArray = teacherList.split(",");
+                roomArray = roomList.split(",");
 
-                CharSequence[] entries = teacherArray;
-                CharSequence[] entryValues = teacherArray;
+                CharSequence[] entries = classArray;
+                CharSequence[] entryValues = classArray;
                 lp.setEntries(entries);
-                lp.setDefaultValue("1");
                 lp.setEntryValues(entryValues);
             }
             else{
-                Log.d("ESBLOG", "BUGG!!");
+                Log.d("ESBLOG", "No internet");
             }
         }
     }

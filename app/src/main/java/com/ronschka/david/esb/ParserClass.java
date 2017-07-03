@@ -16,8 +16,8 @@ public class ParserClass extends AsyncTask<Void, Void, Void>{
 
         Log.d("ESBLOG", "Start Parsing..");
 
-        String user = "spranger15";
-        String password = "vplan4712";
+        String user = "";
+        String password = "";
 
         String auth = user + ":" + password;
 
