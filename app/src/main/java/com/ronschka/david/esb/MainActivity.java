@@ -25,9 +25,6 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    //Shared Preference used for classList value
-    SharedPreferences sharePref;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,23 +33,16 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //opens the Parser Class to parse the Frames
-        ParserClass pars = new ParserClass();
-        pars.execute();
-
+        //opens php class for string echo with class, teacher and room information
         PhpClass php = new PhpClass();
         php.setContext(getApplicationContext());
         php.execute();
-
-        //What is saved into Preference (class) List? Default is x!
-        sharePref = PreferenceManager.getDefaultSharedPreferences(this);
-        String classListValue = sharePref.getString("classList", "x");
 
         //WebView
         final WebView web = (WebView) findViewById(R.id.web_view);
         web.setWebViewClient(new MyWebViewClient());
         web.getSettings().setJavaScriptEnabled(true); //For selection of elements
-        web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=" + classListValue);
+        web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=GO12");
 
         //Animations
         final Animation fab_sync = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_sync);
@@ -62,15 +52,13 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                //What is saved into Preference (class) List? Default is x!
-                sharePref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                String classListValue = sharePref.getString("classList", "x");
-
+                parseUrl();
                 fab.startAnimation(fab_sync);
-                web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=" + classListValue);
+                web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=GO12");
             }
         });
+
+        parseUrl();
     }
     private class MyWebViewClient extends WebViewClient{
 
@@ -98,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
             //IMPORTANT ADD: The page saves cookies for AuthRequests automatically, so one
             //successful Login let you logged in for a while.
             //-add Cookie Remover if User Logout
-
 
             //get Userdata of LoginPreference
             SharedPreferences login = getSharedPreferences("Login", 0);
@@ -141,10 +128,7 @@ public class MainActivity extends AppCompatActivity {
                     web.setWebViewClient(new MyWebViewClient());
                     web.getSettings().setJavaScriptEnabled(true); //Für Klassenauswahl
 
-                    //get the users class preference
-                    sharePref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                    String classListValue = sharePref.getString("classList", "x"); //What is saved into Preference List? Default is x!
-                    web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=" + classListValue);
+                    web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=GO12");
                     dialog.dismiss();
                 }
                 else{
@@ -159,6 +143,32 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    public void parseUrl(){
+        //create the PrefsFragment in SettingsActivity to get a
+        //PreferenceFragment and read the value of list
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        String classNumber = pref.getString("classList","0");
+        String attach;
+
+        //system expects format like '00', '01', .. '99' etc.
+        if(classNumber.length() < 2){
+            attach = "0" + classNumber;
+        }
+        else{
+            attach = classNumber;
+        }
+
+        //this URL with the class attachment will be parsed
+        String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/27/w000" + attach + ".htm";
+
+        //get Userdata of LoginPreference
+        SharedPreferences login = getSharedPreferences("Login", 0);
+        String user = login.getString("Unm","");
+        String pass = login.getString("Psw","");
+
+        //start parser with following parameter
+        new ParserClass().execute(url, user, pass);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -200,11 +210,16 @@ public class MainActivity extends AppCompatActivity {
             startActivity(settings);
             return true;
         }
-        if (id == R.id.action_login) {
-            onCreateLoginWindow();
+        else if (id == R.id.action_login) {
+            Intent test = new Intent(getApplicationContext(), CardViewClass.class);
+            startActivity(test);
+
+            //to test the new view
+            //setContentView(R.layout.vplan_main);
+
+            //onCreateLoginWindow();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 

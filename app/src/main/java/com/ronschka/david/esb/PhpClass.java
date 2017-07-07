@@ -3,7 +3,6 @@ package com.ronschka.david.esb;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,7 +25,7 @@ public class PhpClass extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
 
         try {
-            URL url = new URL("http://www.esb-hamm.de/app/kuerzel_infosystem.php");
+            URL url = new URL("http://www.esb-hamm.de/app/kuerzel_vertretungsplan.php");
             InputStream in = url.openStream();
 
             Document list = Jsoup.parse(in,"ISO-8859-1", "http://www.esb-hamm.de/app/");
@@ -44,8 +43,6 @@ public class PhpClass extends AsyncTask<Void, Void, Void> {
             SharedPreferences.Editor editor = classListStorage.edit();
             editor.putString("PHP", classList);
             editor.apply();
-
-            Log.d("ESBLOG", classList);
 
         } catch (IOException e) {
             e.printStackTrace();

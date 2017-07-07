@@ -7,39 +7,48 @@ import android.util.Log;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-public class ParserClass extends AsyncTask<Void, Void, Void>{
+public class ParserClass extends AsyncTask<String, Void, Void>{
 
-    private String words;
+    private String parsedText;
 
     @Override
-    protected Void doInBackground(Void... params) {
-
-        Log.d("ESBLOG", "Start Parsing..");
-
-        String user = "";
-        String password = "";
+    protected Void doInBackground(String... data) {
+        String url = data[0];
+        String user = data[1];
+        String password = data[2];
 
         String auth = user + ":" + password;
-
         String encoded = new String(Base64.encode(auth.getBytes(), Base64.DEFAULT));
 
         try{
-            Document doc = Jsoup.connect("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/26/w00000.htm")
-                    .header("Authorization", "Basic " + encoded)
+            Document doc = Jsoup.connect(url).header("Authorization", "Basic " + encoded)
                     .get();
+            parsedText = doc.text();
 
-            Log.d("ESBLOG", "Parsed");
-            words = doc.text();
+            //delete unnecessary parts
+            parsedText = parsedText.replaceAll("Dienstag","");
+            parsedText = parsedText.replaceAll("Mittwoch", "");
+            parsedText = parsedText.replaceAll("Donnerstag", "");
+            parsedText = parsedText.replaceAll("Freitag", "");
+            parsedText = parsedText.replaceAll("Tag Datum Klasse\\(n\\) Stunde Lehrer Raum Art Vertretungs-Text", "");
+            parsedText = parsedText.replaceAll("\\|","");
+            parsedText = parsedText.replaceAll("\\[","");
+            parsedText = parsedText.replaceAll("]","");
+
+            String[] parsedArray = parsedText.split("Montag");
+
+            for(int i = 1; i < 6; i++){
+                String x;
+                x = parsedArray[i].toString();
+                Log.d("ESBLOG", "arrayValue: " + x);
+            }
+
         }catch(Exception e){e.printStackTrace();}
 
         return null;
     }
     @Override
-    protected void onPostExecute(Void aVoid){
+    protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
-
-        if(words != null) {
-            Log.d("ESBLOG", words);
-        }
     }
 }

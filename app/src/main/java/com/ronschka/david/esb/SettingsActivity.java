@@ -17,8 +17,11 @@ public class SettingsActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setPhpData();
-        getFragmentManager().beginTransaction().
-                replace(android.R.id.content, new PrefsFragment()).commit();
+
+        //Display the fragment as the main content
+        getFragmentManager().beginTransaction()
+                .replace(android.R.id.content, new PrefsFragment())
+                .commit();
     }
 
     public void setPhpData(){
@@ -38,7 +41,7 @@ public class SettingsActivity extends AppCompatActivity {
             final ListPreference listPreference = (ListPreference) findPreference("classList");
             setListPreferenceData(listPreference);
 
-            listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
                 @Override
                 //If the User changes the preferred school class..
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -68,9 +71,16 @@ public class SettingsActivity extends AppCompatActivity {
                 roomArray = roomList.split(",");
 
                 CharSequence[] entries = classArray;
-                CharSequence[] entryValues = classArray;
+                CharSequence[] entryValues = new CharSequence[classArray.length];
+
+                for(int x = 0; x < classArray.length; x++){
+                    entryValues[x] = Integer.toString(x+1);
+                }
+
                 lp.setEntries(entries);
                 lp.setEntryValues(entryValues);
+
+                Log.d("ESBLOG", "Entries" + lp.getValue());
             }
             else{
                 Log.d("ESBLOG", "No internet");
