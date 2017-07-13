@@ -1,7 +1,9 @@
 package com.ronschka.david.esb;
 
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -11,7 +13,8 @@ import android.util.Log;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    static String phpData = "Error!";
+    static String phpData = "";
+    static String className = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -22,6 +25,14 @@ public class SettingsActivity extends AppCompatActivity {
         getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, new PrefsFragment())
                 .commit();
+    }
+    @Override
+    public void onBackPressed() {
+        Intent data = new Intent();
+        data.setData(Uri.parse(className));
+        setResult(RESULT_OK, data);
+        finish();
+        return;
     }
 
     public void setPhpData(){
@@ -41,12 +52,17 @@ public class SettingsActivity extends AppCompatActivity {
             final ListPreference listPreference = (ListPreference) findPreference("classList");
             setListPreferenceData(listPreference);
 
+            //className will be returned to main, needed for toolbar
+            if(listPreference.getEntry() != null){
+                className = listPreference.getEntry().toString();
+            }
             listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
                 @Override
                 //If the User changes the preferred school class..
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     //..the new value will be saved!
                     listPreference.setValue(newValue.toString());
+                    className = listPreference.getEntry().toString();
                     return false;
                 }
             });
@@ -54,7 +70,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         protected static void setListPreferenceData(ListPreference lp) {
 
-            if(!(phpData=="Error!")) {
+            if(phpData != null && !phpData.isEmpty()){
                 //split the String with full inforamtion by SPLIT
                 CharSequence[] phpArray = phpData.split("SPLIT");
 
@@ -79,8 +95,6 @@ public class SettingsActivity extends AppCompatActivity {
 
                 lp.setEntries(entries);
                 lp.setEntryValues(entryValues);
-
-                Log.d("ESBLOG", "Entries" + lp.getValue());
             }
             else{
                 Log.d("ESBLOG", "No internet");

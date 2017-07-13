@@ -2,17 +2,25 @@ package com.ronschka.david.esb;
 
 import android.os.AsyncTask;
 import android.util.Base64;
-import android.util.Log;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-public class ParserClass extends AsyncTask<String, Void, Void>{
+public class ParserClass extends AsyncTask<String, Void, String>{
 
+    public interface AsyncResponse {
+        void processFinish(String output);
+    }
+
+    public AsyncResponse delegate = null;
     private String parsedText;
 
+    public ParserClass(AsyncResponse delegate){
+        this.delegate = delegate;
+    }
+
     @Override
-    protected Void doInBackground(String... data) {
+    protected String doInBackground(String... data) {
         String url = data[0];
         String user = data[1];
         String password = data[2];
@@ -21,8 +29,16 @@ public class ParserClass extends AsyncTask<String, Void, Void>{
         String encoded = new String(Base64.encode(auth.getBytes(), Base64.DEFAULT));
 
         try{
-            Document doc = Jsoup.connect(url).header("Authorization", "Basic " + encoded)
+            //online use
+            /*Document doc = Jsoup.connect(url).header("Authorization", "Basic " + encoded)
+                    .timeout(3000)
+                    .get(); */
+
+            //local use
+            Document doc = Jsoup.connect(url)
+                    .timeout(3000)
                     .get();
+
             parsedText = doc.text();
 
             //delete unnecessary parts
@@ -30,25 +46,19 @@ public class ParserClass extends AsyncTask<String, Void, Void>{
             parsedText = parsedText.replaceAll("Mittwoch", "");
             parsedText = parsedText.replaceAll("Donnerstag", "");
             parsedText = parsedText.replaceAll("Freitag", "");
+            parsedText = parsedText.replaceAll(" Eduard-Spranger-Berufskolleg: Hamm DB~1~2016-2017~2", "");
             parsedText = parsedText.replaceAll("Tag Datum Klasse\\(n\\) Stunde Lehrer Raum Art Vertretungs-Text", "");
             parsedText = parsedText.replaceAll("\\|","");
             parsedText = parsedText.replaceAll("\\[","");
             parsedText = parsedText.replaceAll("]","");
-
-            String[] parsedArray = parsedText.split("Montag");
-
-            for(int i = 1; i < 6; i++){
-                String x;
-                x = parsedArray[i].toString();
-                Log.d("ESBLOG", "arrayValue: " + x);
-            }
+            parsedText = parsedText.replaceAll("  ", "");
 
         }catch(Exception e){e.printStackTrace();}
 
-        return null;
+        return parsedText;
     }
     @Override
-    protected void onPostExecute(Void aVoid) {
-        super.onPostExecute(aVoid);
+    protected void onPostExecute(String result) {
+        delegate.processFinish(result);
     }
 }

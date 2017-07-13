@@ -4,31 +4,33 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.webkit.HttpAuthHandler;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.Arrays;
+
+
+public class MainActivity extends AppCompatActivity{
+
+    private SwipeRefreshLayout swipeContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -38,64 +40,43 @@ public class MainActivity extends AppCompatActivity {
         php.setContext(getApplicationContext());
         php.execute();
 
-        //WebView
-        final WebView web = (WebView) findViewById(R.id.web_view);
-        web.setWebViewClient(new MyWebViewClient());
-        web.getSettings().setJavaScriptEnabled(true); //For selection of elements
-        web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=GO12");
+        //SwipeRefresher
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                //get ClassValue of ClassPreference
+                SharedPreferences className = getSharedPreferences("className", 0);
+                String classNameString = className.getString("class","");
+
+                parseUrl(classNameString);
+            }
+        });
+        // Configure the refreshing colors
+        swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
 
         //Animations
-        final Animation fab_sync = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_sync);
+       /* final Animation fab_sync = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_sync);
 
         //FloatingButton
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab); //CalenderButton
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab); //RefreshButton
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                parseUrl();
+                //get ClassValue of ClassPreference
+                SharedPreferences className = getSharedPreferences("className", 0);
+                String classNameString = className.getString("class","");
+
+                parseUrl(classNameString);
                 fab.startAnimation(fab_sync);
-                web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=GO12");
             }
-        });
+        }); */
 
-        parseUrl();
-    }
-    private class MyWebViewClient extends WebViewClient{
-
-        //Progress loading function
-        ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
-
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request){
-            progressBar.setVisibility(View.VISIBLE);
-            view.loadUrl(request.toString());
-            return true;
-        }
-        @Override
-        public void onPageFinished(WebView view, String url) {
-            super.onPageFinished(view, url);
-            progressBar.setVisibility(View.GONE);
-        }
-
-
-        //Authentication function
-        @Override
-        public void onReceivedHttpAuthRequest(WebView view,
-                                              HttpAuthHandler handler, String host, String realm){
-
-            //IMPORTANT ADD: The page saves cookies for AuthRequests automatically, so one
-            //successful Login let you logged in for a while.
-            //-add Cookie Remover if User Logout
-
-            //get Userdata of LoginPreference
-            SharedPreferences login = getSharedPreferences("Login", 0);
-            String user = login.getString("Unm","");
-            String pass = login.getString("Psw","");
-
-            //Proceed Userdata to HttpRequest
-            handler.proceed(user, pass);
-
-        }
+        //get ClassValue of ClassPreference
+        SharedPreferences className = getSharedPreferences("className", 0);
+        String classNameString = className.getString("class","");
+        //and start parsing
+        parseUrl(classNameString);
     }
 
     public boolean onCreateLoginWindow() {
@@ -115,20 +96,20 @@ public class MainActivity extends AppCompatActivity {
                     //LoginData Storage
                     SharedPreferences user_data = getSharedPreferences("Login", 0);
                     SharedPreferences.Editor edit = user_data.edit();
+
                     //Delete old data
                     edit.clear();
                     edit.apply();
+
                     //Put new data in
                     edit.putString("Unm",mUser.getText().toString());
                     edit.putString("Psw",mPassword.getText().toString());
                     edit.apply();
 
-                    //Loads the page with the user and password input
-                    WebView web = (WebView) findViewById(R.id.web_view);
-                    web.setWebViewClient(new MyWebViewClient());
-                    web.getSettings().setJavaScriptEnabled(true); //Für Klassenauswahl
-
-                    web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=GO12");
+                    //get ClassValue of ClassPreference
+                    SharedPreferences className = getSharedPreferences("className", 0);
+                    String classNameString = className.getString("class","");
+                    parseUrl(classNameString);
                     dialog.dismiss();
                 }
                 else{
@@ -143,12 +124,23 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void parseUrl(){
+    public void parseUrl(String className){
+        final ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar);
+
+        if(!(swipeContainer.isRefreshing())){
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
         //create the PrefsFragment in SettingsActivity to get a
         //PreferenceFragment and read the value of list
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         String classNumber = pref.getString("classList","0");
         String attach;
+
+        //attach the class to toolbar
+        if(!className.equals("")){
+            getSupportActionBar().setTitle(getString(R.string.app_name) + " - " + className);
+        }
 
         //system expects format like '00', '01', .. '99' etc.
         if(classNumber.length() < 2){
@@ -159,15 +151,103 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //this URL with the class attachment will be parsed
-        String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/27/w000" + attach + ".htm";
+        //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/28/w000" + attach + ".htm";
+        //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/28/w00000.htm";
+
+        //local
+        String url = "http://hat-218.getforge.io/w/28/w000" + attach + ".htm";
 
         //get Userdata of LoginPreference
         SharedPreferences login = getSharedPreferences("Login", 0);
         String user = login.getString("Unm","");
         String pass = login.getString("Psw","");
 
-        //start parser with following parameter
-        new ParserClass().execute(url, user, pass);
+        //receive the result fired from async class of onPostExecute(result) method
+        new ParserClass(new ParserClass.AsyncResponse() {
+            @Override
+            public void processFinish(String output) {
+                //checks if output was created
+                if(output != null) {
+
+                    RecyclerView recyclerView;
+                    ArrayList<String> parsedList = new ArrayList<>(
+                            Arrays.asList(output.split("Montag")));
+
+                    //check all splitted strings separately
+                    for (int b = 0; b < 6; b++) {
+                        String test = parsedList.get(b);
+                        Log.d("ESBLOG", "Value of the String: " + test);
+                    }
+
+                    String[] date = new String[5];
+
+                    //extend formatting
+                    for (int i = 1; i < 7; i++) {
+                        String x = parsedList.get(i - 1);
+
+                        if (i == 1) {
+                            //date of the first day (day 0) (no information)
+                            x = x.replaceAll("Untis 20176Eduard-Spranger-Berufskolleg Hamm1", "");
+                            x = x.replaceFirst(" ", "");
+                            x = x.replaceAll("   ", " ");
+
+                            //date
+                            String[] y0 = x.split(" ");
+                            date[0] = y0[y0.length - 1];
+                        } else if (i == 2) {
+                            //day 1 information
+                            x = x.replaceFirst(" ", "");
+                            x = x.replaceAll("  ", "");
+                            parsedList.remove(i - 2);
+                            parsedList.add(i - 2, x);
+
+                            Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
+                        } else {
+                            //day 2 - 5 information
+                            x = x.replaceFirst(" ", "");
+
+                            //date
+                            String[] split = x.split("\\.");
+                            date[i - 2] = split[0] + "." + split[1] + ".";
+
+                            //replace the date (only information is left)
+                            x = x.replaceFirst(date[i - 2], "");
+
+                            x = x.replaceAll("  ", "");
+
+                            parsedList.remove(i - 2);
+                            parsedList.add(i - 2, x);
+
+                            Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
+                        }
+                    }//list 0 -> date | list 1 - 5 -> info
+
+                    //separate every date with a comma to save it as a string
+                    StringBuilder dateBuilder = new StringBuilder();
+                    for (String n : date) {
+                        dateBuilder.append(n + ",");
+                    }
+                    dateBuilder.deleteCharAt(dateBuilder.length() - 1);
+                    parsedList.add(0, dateBuilder.toString());
+
+                    parsedList.remove(6);
+
+                    recyclerView = (RecyclerView) findViewById(R.id.recycler);
+                    recyclerView.setHasFixedSize(true);
+                    recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+
+                    recyclerView.setAdapter(new RecyclerAdapter(parsedList) {
+                    });
+                }
+                else{
+                    onCreateLoginWindow();
+                }
+
+                //turn refresher off
+                swipeContainer.setRefreshing(false);
+                progressBar.setVisibility(View.GONE);
+            }
+        }).execute(url, user, pass); //start parser with following parameter
     }
 
     @Override
@@ -183,8 +263,6 @@ public class MainActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                WebView web = (WebView)findViewById(R.id.web_view);
-                web.loadUrl("http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/default.htm?art=w&name=" + query);
                 return false;
             }
 
@@ -207,20 +285,37 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Intent settings = new Intent(getApplicationContext(), SettingsActivity.class);
-            startActivity(settings);
+            int requestCode = 1;
+            startActivityForResult(settings, requestCode);
             return true;
         }
         else if (id == R.id.action_login) {
-            Intent test = new Intent(getApplicationContext(), CardViewClass.class);
-            startActivity(test);
-
-            //to test the new view
-            //setContentView(R.layout.vplan_main);
-
-            //onCreateLoginWindow();
+            onCreateLoginWindow();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                String returnedResult = data.getData().toString();
+
+                //save the new classValue
+                SharedPreferences className = getSharedPreferences("className", 0);
+                SharedPreferences.Editor edit = className.edit();
+
+                //Delete old data
+                edit.clear();
+                edit.apply();
+
+                //Put new data in
+                edit.putString("class",returnedResult);
+                edit.apply();
+
+                parseUrl(returnedResult);
+            }
+        }
     }
 
 }

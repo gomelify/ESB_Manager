@@ -25,7 +25,7 @@ public class PhpClass extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
 
         try {
-            URL url = new URL("http://www.esb-hamm.de/app/kuerzel_vertretungsplan.php");
+            URL url = new URL("http://www.esb-hamm.de/app/kuerzel_vertretungsplan_schueler.php");
             InputStream in = url.openStream();
 
             Document list = Jsoup.parse(in,"ISO-8859-1", "http://www.esb-hamm.de/app/");
