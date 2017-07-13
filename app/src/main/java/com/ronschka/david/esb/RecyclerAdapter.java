@@ -26,7 +26,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     public int getItemViewType(int position) {
         if(array.get(position + 1).contains("Keine Vertretungen") ||
                 array.get(position + 1).contains("Vertretungen sind nicht freigegeben") ){
-            return 0;
+            return 2;
         }
         else{
             return 1;
@@ -44,6 +44,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 //filled
                 return new ViewHolder(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recycler_child_cancelled, parent, false));
+            case 2:
+                //null
+                return null;
         }
         return null;
     }
