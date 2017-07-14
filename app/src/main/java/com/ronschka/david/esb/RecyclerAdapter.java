@@ -24,12 +24,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     @Override
     public int getItemViewType(int position) {
-        if(array.get(position + 1).contains("Keine Vertretungen") ||
-                array.get(position + 1).contains("Vertretungen sind nicht freigegeben") ){
-            return 2;
+        if (array.get(position + 1).contains("Keine Vertretungen")){
+            return 0;
+        }
+        else if(array.get(position + 1).contains("Vertretungen sind nicht freigegeben")) {
+            return 1;
         }
         else{
-            return 1;
+            return 2;
         }
     }
 
@@ -41,20 +43,31 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 return new ViewHolder(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recycler_child_void, parent, false));
             case 1:
+                //null
+                return new ViewHolder(LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.recycler_child_null, parent, false));
+            case 2:
                 //filled
                 return new ViewHolder(LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.recycler_child_cancelled, parent, false));
-            case 2:
-                //null
-                return null;
+                        .inflate(R.layout.recycler_child_filled, parent, false));
         }
         return null;
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+        boolean nullTag = false; //track if the object is a "null"-object
+        String[] dayShort = {"Mo", "Di", "Mi", "Do", "Fr"};
+        int cardViewCounter = 1;
+
         //Filled preset
-        if(getItemViewType(position) == 1){
+        if(getItemViewType(position) == 2){
+            //count needed cardViews
+            String count = array.get(position + 1);
+            array.get(position + 1);
+
+
+
             //Case: Fällt aus
             if(array.get(position + 1).contains("Fällt aus")){
                 String[] x = array.get(position + 1).split(" --- ");
@@ -189,30 +202,29 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 }
             }
         }
-
-        //Void preset
-        else{
-            if(array.get(position + 1).contains("Vertretungen sind nicht freigegeben")) {
-                holder.cancel.setText("Vertretungen sind nicht freigegeben");
-            }
+        //null preset
+        else if(getItemViewType(position) == 1){
+            nullTag = true;
         }
 
-        switch(position + 1){
-            case 1:
-                holder.day.setText("Montag, " + date[position] + year);
-                break;
-            case 2:
-                holder.day.setText("Dienstag, " + date[position] + year);
-                break;
-            case 3:
-                holder.day.setText("Mittwoch, " + date[position] + year);
-                break;
-            case 4:
-                holder.day.setText("Donnerstag, " + date[position] + year);
-                break;
-            case 5:
-                holder.day.setText("Freitag, " + date[position] + year);
-                break;
+        if(nullTag == false) {
+            switch (position + 1) {
+                case 1:
+                    holder.day.setText("Montag, " + date[position] + year);
+                    break;
+                case 2:
+                    holder.day.setText("Dienstag, " + date[position] + year);
+                    break;
+                case 3:
+                    holder.day.setText("Mittwoch, " + date[position] + year);
+                    break;
+                case 4:
+                    holder.day.setText("Donnerstag, " + date[position] + year);
+                    break;
+                case 5:
+                    holder.day.setText("Freitag, " + date[position] + year);
+                    break;
+            }
         }
     }
 
