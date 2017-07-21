@@ -151,11 +151,11 @@ public class MainActivity extends AppCompatActivity{
         }
 
         //this URL with the class attachment will be parsed
-        //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/28/w000" + attach + ".htm";
+        //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/35/w000" + attach + ".htm";
         //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/28/w00000.htm";
 
-        //local
-        String url = "http://hat-218.getforge.io/w/28/w000" + attach + ".htm";
+        //for the internal tests
+        String url = "http://jockisch-is-mr-hamster.getforge.io/28/w000" + attach + ".htm";
 
         //get Userdata of LoginPreference
         SharedPreferences login = getSharedPreferences("Login", 0);
@@ -172,12 +172,6 @@ public class MainActivity extends AppCompatActivity{
                     RecyclerView recyclerView;
                     ArrayList<String> parsedList = new ArrayList<>(
                             Arrays.asList(output.split("Montag")));
-
-                    //check all splitted strings separately
-                    for (int b = 0; b < 6; b++) {
-                        String test = parsedList.get(b);
-                        Log.d("ESBLOG", "Value of the String: " + test);
-                    }
 
                     String[] date = new String[5];
 

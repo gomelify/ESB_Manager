@@ -30,13 +30,14 @@ public class ParserClass extends AsyncTask<String, Void, String>{
 
         try{
             //online use
-            /*Document doc = Jsoup.connect(url).header("Authorization", "Basic " + encoded)
-                    .timeout(3000)
+            /*Document doc = Jsoup.connect(url)
+                    .header("Authorization", "Basic " + encoded)
+                    .timeout(10000)
                     .get(); */
 
             //local use
             Document doc = Jsoup.connect(url)
-                    .timeout(3000)
+                    .timeout(10000)
                     .get();
 
             parsedText = doc.text();
