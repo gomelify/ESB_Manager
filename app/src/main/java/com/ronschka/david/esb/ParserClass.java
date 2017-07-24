@@ -43,16 +43,9 @@ public class ParserClass extends AsyncTask<String, Void, String>{
             parsedText = doc.text();
 
             //delete unnecessary parts
-            parsedText = parsedText.replaceAll("Dienstag","");
-            parsedText = parsedText.replaceAll("Mittwoch", "");
-            parsedText = parsedText.replaceAll("Donnerstag", "");
-            parsedText = parsedText.replaceAll("Freitag", "");
+            parsedText = parsedText.replaceFirst("Montag","[ Montag ]");
             parsedText = parsedText.replaceAll(" Eduard-Spranger-Berufskolleg: Hamm DB~1~2016-2017~2", "");
             parsedText = parsedText.replaceAll("Tag Datum Klasse\\(n\\) Stunde Lehrer Raum Art Vertretungs-Text", "");
-            parsedText = parsedText.replaceAll("\\|","");
-            parsedText = parsedText.replaceAll("\\[","");
-            parsedText = parsedText.replaceAll("]","");
-            parsedText = parsedText.replaceAll("  ", "");
 
         }catch(Exception e){e.printStackTrace();}
 

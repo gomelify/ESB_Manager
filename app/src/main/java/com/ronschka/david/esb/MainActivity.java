@@ -2,6 +2,7 @@ package com.ronschka.david.esb;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -54,23 +56,6 @@ public class MainActivity extends AppCompatActivity{
         });
         // Configure the refreshing colors
         swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
-
-        //Animations
-       /* final Animation fab_sync = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_sync);
-
-        //FloatingButton
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab); //RefreshButton
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //get ClassValue of ClassPreference
-                SharedPreferences className = getSharedPreferences("className", 0);
-                String classNameString = className.getString("class","");
-
-                parseUrl(classNameString);
-                fab.startAnimation(fab_sync);
-            }
-        }); */
 
         //get ClassValue of ClassPreference
         SharedPreferences className = getSharedPreferences("className", 0);
@@ -120,6 +105,7 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
+        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation; //up-down animation
         dialog.show();
         return true;
     }
@@ -171,7 +157,7 @@ public class MainActivity extends AppCompatActivity{
 
                     RecyclerView recyclerView;
                     ArrayList<String> parsedList = new ArrayList<>(
-                            Arrays.asList(output.split("Montag")));
+                            Arrays.asList(output.split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
 
                     String[] date = new String[5];
 
@@ -183,15 +169,23 @@ public class MainActivity extends AppCompatActivity{
                             //date of the first day (day 0) (no information)
                             x = x.replaceAll("Untis 20176Eduard-Spranger-Berufskolleg Hamm1", "");
                             x = x.replaceFirst(" ", "");
-                            x = x.replaceAll("   ", " ");
 
                             //date
                             String[] y0 = x.split(" ");
-                            date[0] = y0[y0.length - 1];
+                            date[0] = (y0[y0.length - 1]).trim();
                         } else if (i == 2) {
                             //day 1 information
-                            x = x.replaceFirst(" ", "");
-                            x = x.replaceAll("  ", "");
+                            x = x.replaceAll("\\|","");
+                            x = x.replaceAll("\\[","");
+                            x = x.replaceAll("]","");
+                            x = x.replaceFirst(" Dienstag ", "");
+                            x = x.replaceFirst(" Mittwoch ", "");
+                            x = x.replaceFirst(" Donnerstag ", "");
+                            x = x.replaceFirst(" Freitag ", "");
+                            x = x.replaceFirst("Mo |Di |Mi |Do |Fr ","");
+                            x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
+                            x = x.trim(); //trims space on begin and end
+
                             parsedList.remove(i - 2);
                             parsedList.add(i - 2, x);
 
@@ -199,16 +193,29 @@ public class MainActivity extends AppCompatActivity{
                         } else {
                             //day 2 - 5 information
                             x = x.replaceFirst(" ", "");
+                            x = x.replaceAll("\\|","");
+                            x = x.replaceAll("\\[","");
+                            x = x.replaceAll("]","");
+                            x = x.replaceFirst(" Dienstag ", "");
+                            x = x.replaceFirst(" Mittwoch ", "");
+                            x = x.replaceFirst(" Donnerstag ", "");
+                            x = x.replaceFirst(" Freitag ", "");
+                            x = x.replaceFirst("Mo |Di |Mi |Do |Fr ","");
+                            x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
 
                             //date
                             String[] split = x.split("\\.");
-                            date[i - 2] = split[0] + "." + split[1] + ".";
+                            date[i - 2] = (split[0] + "." + split[1] + ".").trim();
 
                             //replace the date (only information is left)
                             x = x.replaceFirst(date[i - 2], "");
 
-                            x = x.replaceAll("  ", "");
-
+                            if(i == 6){ //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
+                                String splitter[] = x.split("   ");
+                                x = x.replace(splitter[splitter.length - 1], ""); //remove last separated part
+                                x = x.trim();
+                            }
+                            x = x.trim();
                             parsedList.remove(i - 2);
                             parsedList.add(i - 2, x);
 
@@ -230,7 +237,7 @@ public class MainActivity extends AppCompatActivity{
                     recyclerView.setHasFixedSize(true);
                     recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
 
-                    recyclerView.setAdapter(new RecyclerAdapter(parsedList) {
+                    recyclerView.setAdapter(new RecyclerAdapter(parsedList, MainActivity.this) {
                     });
                 }
                 else{
@@ -312,4 +319,25 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
+    public void onCreateDetailView(String detail){
+        String detailArray[] = detail.split(",");
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+        View mView = getLayoutInflater().inflate(R.layout.activity_details, null);
+        TextView txtCase = (TextView) mView.findViewById(R.id.textViewCase);
+        TextView txtHours = (TextView) mView.findViewById(R.id.textViewHours);
+        TextView txtDate = (TextView) mView.findViewById(R.id.txtDate);
+        TextView txtClass = (TextView) mView.findViewById(R.id.txtClass);
+
+        //set handed details
+        txtCase.setText(detailArray[0]);
+        txtCase.setTextColor(Color.parseColor(detailArray[2]));
+        txtHours.setText(detailArray[1]);
+        txtHours.setTextColor(Color.parseColor(detailArray[2]));
+
+        mBuilder.setView(mView);
+        AlertDialog dialog = mBuilder.create();
+        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation; //up-down animation
+        dialog.show();
+    }
 }

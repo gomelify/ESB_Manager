@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/textViewHours"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:text="1-2"
+            android:textColor="@color/cancelledColor"
+            android:textSize="35sp" />
+
+        <TextView
+            android:id="@+id/textViewCase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/textViewHours"
+            android:layout_marginLeft="29dp"
+            android:layout_marginStart="29dp"
+            android:layout_toEndOf="@+id/textViewHours"
+            android:layout_toRightOf="@+id/textViewHours"
+            android:text="@string/cancellation"
+            android:textColor="@color/cancelledColor"
+            android:textSize="27sp" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/textViewCase"
+            android:layout_alignStart="@+id/textViewCase"
+            android:layout_below="@+id/textViewCase"
+            android:layout_marginTop="27dp"
+            android:text="Datum"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Klasse"
+            android:textSize="16sp"
+            android:layout_above="@+id/txtClass"
+            android:layout_alignLeft="@+id/txtDate"
+            android:layout_alignStart="@+id/txtDate" />
+
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/textView8"
+            android:layout_alignLeft="@+id/txtClass"
+            android:layout_alignStart="@+id/txtClass"
+            android:text="Beschreibung"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/txtDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/textView3"
+            android:layout_alignStart="@+id/textView3"
+            android:layout_below="@+id/textView3"
+            android:text="Montag, 24.07.2017" />
+
+        <TextView
+            android:id="@+id/txtClass"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GO12"
+            android:layout_alignBottom="@+id/imageView3"
+            android:layout_alignLeft="@+id/textView5"
+            android:layout_alignStart="@+id/textView5" />
+
+        <TextView
+            android:id="@+id/textView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/imageView4"
+            android:layout_alignLeft="@+id/textView7"
+            android:layout_alignStart="@+id/textView7"
+            android:text="Herr Beispiel ist erkältet!" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="30dp"
+            android:layout_height="36dp"
+            android:layout_alignBottom="@+id/txtDate"
+            android:layout_alignEnd="@+id/textViewHours"
+            android:layout_alignRight="@+id/textViewHours"
+            android:tint="@color/Grey"
+            app:srcCompat="@drawable/ic_event_black_24dp" />
+
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="30dp"
+            android:layout_height="36dp"
+            android:layout_alignLeft="@+id/imageView"
+            android:layout_alignStart="@+id/imageView"
+            android:layout_below="@+id/imageView"
+            android:layout_marginTop="40dp"
+            android:tint="@color/Grey"
+            app:srcCompat="@drawable/ic_group_black_24dp" />
+
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="30dp"
+            android:layout_height="36dp"
+            android:layout_alignLeft="@+id/imageView3"
+            android:layout_alignStart="@+id/imageView3"
+            android:layout_below="@+id/imageView3"
+            android:layout_marginTop="40dp"
+            android:tint="@color/Grey"
+            app:srcCompat="@drawable/ic_announcement_black_24dp" />
+
+    </RelativeLayout>
+
+</LinearLayout>

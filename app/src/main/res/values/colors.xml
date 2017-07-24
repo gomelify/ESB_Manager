@@ -5,4 +5,5 @@
     <color name="colorAccent">#303f9f</color>
     <color name="colorTextAccent">#3949ab</color>
     <color name="cancelledColor">#c62828</color>
+    <color name="Grey">#757575</color>
 </resources>
