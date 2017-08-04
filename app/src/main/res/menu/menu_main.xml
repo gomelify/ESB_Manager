@@ -12,4 +12,11 @@
         android:orderInCategory="100"
         android:title="@string/action_login"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:title="@string/search"
+        app:showAsAction="always|collapseActionView"
+        android:clickable="true"
+        app:actionViewClass="android.support.v7.widget.SearchView"/>
 </menu>

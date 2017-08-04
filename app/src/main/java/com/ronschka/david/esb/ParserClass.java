@@ -2,6 +2,7 @@ package com.ronschka.david.esb;
 
 import android.os.AsyncTask;
 import android.util.Base64;
+import android.util.Log;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -46,8 +47,15 @@ public class ParserClass extends AsyncTask<String, Void, String>{
             parsedText = parsedText.replaceFirst("Montag","[ Montag ]");
             parsedText = parsedText.replaceAll(" Eduard-Spranger-Berufskolleg: Hamm DB~1~2016-2017~2", "");
             parsedText = parsedText.replaceAll("Tag Datum Klasse\\(n\\) Stunde Lehrer Raum Art Vertretungs-Text", "");
+            parsedText = parsedText.replaceAll(" Mo ", " ~ "); //new splitter for cases -> ~
+            parsedText = parsedText.replaceAll(" Di ", " ~ ");
+            parsedText = parsedText.replaceAll(" Mi ", " ~ ");
+            parsedText = parsedText.replaceAll(" Do ", " ~ ");
+            parsedText = parsedText.replaceAll(" Fr ", " ~ ");
 
-        }catch(Exception e){e.printStackTrace();}
+        }catch(Exception e){
+            Log.d("ESBLOG", "Internet connection failed!");
+            e.printStackTrace();}
 
         return parsedText;
     }

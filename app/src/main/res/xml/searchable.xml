@@ -2,8 +2,5 @@
 <searchable xmlns:android="http://schemas.android.com/apk/res/android"
     android:label="@string/app_name"
     android:hint="@string/searchViewHint"
-    android:voiceSearchMode="showVoiceSearchButton|launchRecognizer"
-    android:searchSuggestAuthority="dictionary"
-    android:searchSuggestIntentAction="android.intent.action.VIEW"
-    android:includeInGlobalSearch="true">
+    android:imeOptions="actionSearch">
 </searchable>

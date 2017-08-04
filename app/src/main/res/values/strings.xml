@@ -15,4 +15,8 @@
     <string name="searchViewHint">Klassen durchsuchen</string>
     <string name="cancelled">Entfall</string>
     <string name="cancellation">Entfall</string>
+    <string name="search">Suche</string>
+    <string name="pref_previously_started">previously_started</string>
+    <string name="initialSetup">Ersteinrichtung</string>
+    <string name="setup_class">Klasse auswählen</string>
 </resources>

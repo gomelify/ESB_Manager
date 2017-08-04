@@ -1,10 +1,14 @@
 package com.ronschka.david.esb;
 
+import android.app.SearchManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -13,8 +17,10 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,6 +30,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 
 
 public class MainActivity extends AppCompatActivity{
@@ -33,6 +40,20 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        boolean previouslyStarted = prefs.getBoolean(getString(R.string.pref_previously_started), false);
+        if(!previouslyStarted) {
+            Intent setup = new Intent(getApplicationContext(), InitialSetupActivity.class);
+            startActivity(setup);
+
+            SharedPreferences.Editor edit = prefs.edit();
+            edit.putBoolean(getString(R.string.pref_previously_started), Boolean.TRUE);
+            edit.commit();
+            Log.d("ESBLOG", "FIRST START!");
+        }
+
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -113,6 +134,10 @@ public class MainActivity extends AppCompatActivity{
     public void parseUrl(String className){
         final ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar);
 
+        //get the current week
+        Calendar calender = Calendar.getInstance();
+        int currentWeek = calender.get(Calendar.WEEK_OF_YEAR);
+
         if(!(swipeContainer.isRefreshing())){
             progressBar.setVisibility(View.VISIBLE);
         }
@@ -137,7 +162,7 @@ public class MainActivity extends AppCompatActivity{
         }
 
         //this URL with the class attachment will be parsed
-        //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/35/w000" + attach + ".htm";
+        //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + currentWeek + "/w000" + attach + ".htm";
         //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/28/w00000.htm";
 
         //for the internal tests
@@ -182,7 +207,7 @@ public class MainActivity extends AppCompatActivity{
                             x = x.replaceFirst(" Mittwoch ", "");
                             x = x.replaceFirst(" Donnerstag ", "");
                             x = x.replaceFirst(" Freitag ", "");
-                            x = x.replaceFirst("Mo |Di |Mi |Do |Fr ","");
+                            x = x.replaceFirst("~ ","");
                             x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
                             x = x.trim(); //trims space on begin and end
 
@@ -200,7 +225,7 @@ public class MainActivity extends AppCompatActivity{
                             x = x.replaceFirst(" Mittwoch ", "");
                             x = x.replaceFirst(" Donnerstag ", "");
                             x = x.replaceFirst(" Freitag ", "");
-                            x = x.replaceFirst("Mo |Di |Mi |Do |Fr ","");
+                            x = x.replaceFirst("~ ","");
                             x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
 
                             //date
@@ -211,8 +236,8 @@ public class MainActivity extends AppCompatActivity{
                             x = x.replaceFirst(date[i - 2], "");
 
                             if(i == 6){ //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
-                                String splitter[] = x.split("   ");
-                                x = x.replace(splitter[splitter.length - 1], ""); //remove last separated part
+                                String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
+                                x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
                                 x = x.trim();
                             }
                             x = x.trim();
@@ -255,24 +280,17 @@ public class MainActivity extends AppCompatActivity{
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        getMenuInflater().inflate(R.menu.menu_search, menu);
-        MenuItem item = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView)item.getActionView();
-        searchView.setQueryHint(getString(R.string.searchViewHint));
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView)
+                MenuItemCompat.getActionView(searchItem);
 
-        //text listener for the searchView
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
-            }
-        });
-
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager =
+                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        ComponentName componentName =
+                new ComponentName(getApplicationContext(), SearchResultsActivity.class);
+        searchView.setSearchableInfo(searchManager.
+                getSearchableInfo(componentName));
         return true;
     }
 
@@ -323,21 +341,54 @@ public class MainActivity extends AppCompatActivity{
         String detailArray[] = detail.split(",");
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-        View mView = getLayoutInflater().inflate(R.layout.activity_details, null);
+        final View mView = getLayoutInflater().inflate(R.layout.activity_details, null);
         TextView txtCase = (TextView) mView.findViewById(R.id.textViewCase);
         TextView txtHours = (TextView) mView.findViewById(R.id.textViewHours);
         TextView txtDate = (TextView) mView.findViewById(R.id.txtDate);
         TextView txtClass = (TextView) mView.findViewById(R.id.txtClass);
+        TextView txtInfo = (TextView)mView.findViewById(R.id.textViewInformation);
 
         //set handed details
         txtCase.setText(detailArray[0]);
         txtCase.setTextColor(Color.parseColor(detailArray[2]));
         txtHours.setText(detailArray[1]);
         txtHours.setTextColor(Color.parseColor(detailArray[2]));
+        txtDate.setText(detailArray[3] + "," + detailArray[4]); //two arrays because they are by default separated with a comma
+        txtInfo.setText(detailArray[5]);
+
+        //get ClassValue of ClassPreference
+        SharedPreferences classNamePreference = getSharedPreferences("className", 0);
+        String className = classNamePreference.getString("class","");
+        txtClass.setText(className);
 
         mBuilder.setView(mView);
-        AlertDialog dialog = mBuilder.create();
+        final AlertDialog dialog = mBuilder.create();
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation; //up-down animation
         dialog.show();
+
+        final GestureDetector gdt = new GestureDetector(this, new GestureListener());
+
+        //listener for fling gesture
+        mView.setOnTouchListener(new View.OnTouchListener(){
+            public boolean onTouch(View v, MotionEvent motion) {
+                if(gdt.onTouchEvent(motion)){
+                    dialog.dismiss();
+                    return false;
+                }
+                return true;
+            }
+        });
+    }
+
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onScroll(MotionEvent event1, MotionEvent event2, float distanceX, float distanceY) {
+            if(distanceX > -25 && distanceX < 25 && distanceY < -8){ //Down-gesture
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
     }
 }

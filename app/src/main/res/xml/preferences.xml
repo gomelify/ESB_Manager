@@ -8,7 +8,7 @@
         android:title="@string/class_preference_title"
         android:entries="@array/listentries"
         android:entryValues="@array/listvalues"
-        android:defaultValue="0"/>
+        android:defaultValue="0" />
     <CheckBoxPreference
         android:key="syncCheck"
         android:title="@string/sync_preference_title" />
