@@ -36,10 +36,12 @@
             android:id="@+id/txtViewDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/textViewCase"
-            android:layout_marginTop="29dp"
-            android:layout_toEndOf="@+id/textViewHours"
-            android:layout_toRightOf="@+id/textViewHours"
+            android:layout_below="@+id/textViewHours"
+            android:layout_marginLeft="11dp"
+            android:layout_marginStart="11dp"
+            android:layout_marginTop="30dp"
+            android:layout_toEndOf="@+id/imgDate"
+            android:layout_toRightOf="@+id/imgDate"
             android:text="Datum"
             android:textSize="16sp" />
 
@@ -58,8 +60,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@+id/txtInfoDetail"
-            android:layout_alignLeft="@+id/txtClassDetail"
-            android:layout_alignStart="@+id/txtClassDetail"
+            android:layout_marginLeft="14dp"
+            android:layout_marginStart="14dp"
+            android:layout_toEndOf="@+id/imgDescription"
+            android:layout_toRightOf="@+id/imgDescription"
             android:text="Beschreibung"
             android:textSize="16sp" />
 
@@ -68,8 +72,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@+id/txtTeacherDetail"
-            android:layout_alignLeft="@+id/txtRoomDetail"
-            android:layout_alignStart="@+id/txtRoomDetail"
+            android:layout_alignLeft="@+id/txtViewDescription"
+            android:layout_alignStart="@+id/txtViewDescription"
             android:text="Lehrer"
             android:textSize="16sp" />
 
@@ -132,11 +136,11 @@
             android:id="@+id/imgDate"
             android:layout_width="25dp"
             android:layout_height="36dp"
-            android:layout_alignLeft="@+id/textViewHours"
-            android:layout_alignStart="@+id/textViewHours"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_alignTop="@+id/txtViewDate"
-            android:layout_marginLeft="25dp"
-            android:layout_marginStart="25dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginStart="15dp"
             android:tint="@color/Grey"
             app:srcCompat="@drawable/ic_event_black_24dp" />
 
@@ -147,7 +151,7 @@
             android:layout_alignLeft="@+id/imgDate"
             android:layout_alignStart="@+id/imgDate"
             android:layout_below="@+id/imgDate"
-            android:layout_marginTop="35dp"
+            android:layout_marginTop="30dp"
             android:tint="@color/Grey"
             app:srcCompat="@drawable/ic_group_black_24dp" />
 
@@ -155,10 +159,9 @@
             android:id="@+id/imgDescription"
             android:layout_width="25dp"
             android:layout_height="36dp"
-            android:layout_alignLeft="@+id/imgClass"
-            android:layout_alignStart="@+id/imgClass"
-            android:layout_below="@+id/imgTeacher"
-            android:layout_marginTop="35dp"
+            android:layout_alignLeft="@+id/imgTeacher"
+            android:layout_alignStart="@+id/imgTeacher"
+            android:layout_alignTop="@+id/txtViewClass"
             android:tint="@color/Grey"
             app:srcCompat="@drawable/ic_announcement_black_24dp" />
 
@@ -169,7 +172,7 @@
             android:layout_alignLeft="@+id/imgClass"
             android:layout_alignStart="@+id/imgClass"
             android:layout_below="@+id/imgClass"
-            android:layout_marginTop="35dp"
+            android:layout_marginTop="30dp"
             android:tint="@color/Grey"
             app:srcCompat="@drawable/ic_room_black_24dp" />
 
@@ -177,10 +180,11 @@
             android:id="@+id/imgTeacher"
             android:layout_width="25dp"
             android:layout_height="36dp"
-            android:layout_alignLeft="@+id/imgDescription"
-            android:layout_alignStart="@+id/imgDescription"
-            android:layout_below="@+id/imgRoom"
-            android:layout_marginTop="35dp"
+            android:layout_alignBottom="@+id/imgDate"
+            android:layout_marginLeft="162dp"
+            android:layout_marginStart="162dp"
+            android:layout_toEndOf="@+id/imgDate"
+            android:layout_toRightOf="@+id/imgDate"
             android:tint="@color/Grey"
             app:srcCompat="@drawable/ic_person_black_24dp" />
 

@@ -1,10 +1,14 @@
 package com.ronschka.david.esb;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -20,6 +24,7 @@ public class InitialSetupActivity extends AppCompatActivity{
 
         // Get reference of widgets from XML layout
         final Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        final Button button = (Button) findViewById(R.id.btnNext);
 
         // Initializing a String Array
         String[] plants = new String[]{
@@ -69,6 +74,17 @@ public class InitialSetupActivity extends AppCompatActivity{
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
+            }
+        });
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                SharedPreferences.Editor edit = prefs.edit();
+                edit.putBoolean(getString(R.string.pref_previously_started), Boolean.TRUE);
+                edit.commit();
+                Intent main = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(main);
             }
         });
     }

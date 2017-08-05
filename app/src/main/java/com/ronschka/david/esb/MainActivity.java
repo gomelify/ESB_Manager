@@ -36,6 +36,7 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity{
 
     private SwipeRefreshLayout swipeContainer;
+    private String classNameString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,45 +45,42 @@ public class MainActivity extends AppCompatActivity{
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         boolean previouslyStarted = prefs.getBoolean(getString(R.string.pref_previously_started), false);
         if(!previouslyStarted) {
-            Intent setup = new Intent(getApplicationContext(), InitialSetupActivity.class);
-            startActivity(setup);
-
-            SharedPreferences.Editor edit = prefs.edit();
-            edit.putBoolean(getString(R.string.pref_previously_started), Boolean.TRUE);
-            edit.commit();
+            Intent login = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(login);
+            finish();
             Log.d("ESBLOG", "FIRST START!");
         }
+        else{
+            setContentView(R.layout.activity_main);
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
 
+            //opens php class for string echo with class, teacher and room information
+            PhpClass php = new PhpClass();
+            php.setContext(getApplicationContext());
+            php.execute();
 
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+            //SwipeRefresher
+            swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+            swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    //get ClassValue of ClassPreference
+                    SharedPreferences className = getSharedPreferences("className", 0);
+                    String classNameString = className.getString("class","");
 
-        //opens php class for string echo with class, teacher and room information
-        PhpClass php = new PhpClass();
-        php.setContext(getApplicationContext());
-        php.execute();
+                    parseUrl(classNameString);
+                }
+            });
+            // Configure the refreshing colors
+            swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
 
-        //SwipeRefresher
-        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                //get ClassValue of ClassPreference
-                SharedPreferences className = getSharedPreferences("className", 0);
-                String classNameString = className.getString("class","");
-
-                parseUrl(classNameString);
-            }
-        });
-        // Configure the refreshing colors
-        swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
-
-        //get ClassValue of ClassPreference
-        SharedPreferences className = getSharedPreferences("className", 0);
-        String classNameString = className.getString("class","");
-        //and start parsing
-        parseUrl(classNameString);
+            //get ClassValue of ClassPreference
+            SharedPreferences className = getSharedPreferences("className", 0);
+            classNameString = className.getString("class","");
+            //and start parsing
+            parseUrl(classNameString);
+        }
     }
 
     public boolean onCreateLoginWindow() {
@@ -207,9 +205,12 @@ public class MainActivity extends AppCompatActivity{
                             x = x.replaceFirst(" Mittwoch ", "");
                             x = x.replaceFirst(" Donnerstag ", "");
                             x = x.replaceFirst(" Freitag ", "");
-                            x = x.replaceFirst("~ ","");
                             x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
                             x = x.trim(); //trims space on begin and end
+
+                            if(!x.contains("Nachrichten zum Tag")){
+                                x = x.replaceFirst("~ ","");
+                            }
 
                             parsedList.remove(i - 2);
                             parsedList.add(i - 2, x);
@@ -225,7 +226,6 @@ public class MainActivity extends AppCompatActivity{
                             x = x.replaceFirst(" Mittwoch ", "");
                             x = x.replaceFirst(" Donnerstag ", "");
                             x = x.replaceFirst(" Freitag ", "");
-                            x = x.replaceFirst("~ ","");
                             x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
 
                             //date
@@ -235,6 +235,9 @@ public class MainActivity extends AppCompatActivity{
                             //replace the date (only information is left)
                             x = x.replaceFirst(date[i - 2], "");
 
+                            if(!x.contains("Nachrichten zum Tag")){
+                                x = x.replaceFirst("~ ","");
+                            }
                             if(i == 6){ //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
                                 String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
                                 x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
@@ -344,9 +347,10 @@ public class MainActivity extends AppCompatActivity{
         final View mView = getLayoutInflater().inflate(R.layout.activity_details, null);
         TextView txtCase = (TextView) mView.findViewById(R.id.textViewCase);
         TextView txtHours = (TextView) mView.findViewById(R.id.textViewHours);
-        TextView txtDate = (TextView) mView.findViewById(R.id.txtDate);
-        TextView txtClass = (TextView) mView.findViewById(R.id.txtClass);
-        TextView txtInfo = (TextView)mView.findViewById(R.id.textViewInformation);
+        TextView txtDate = (TextView) mView.findViewById(R.id.txtDateDetail);
+        TextView txtClass = (TextView) mView.findViewById(R.id.txtClassDetail);
+        TextView txtInfo = (TextView)mView.findViewById(R.id.txtInfoDetail);
+        TextView txtTeacher = (TextView)mView.findViewById(R.id.txtTeacherDetail);
 
         //set handed details
         txtCase.setText(detailArray[0]);
@@ -355,11 +359,9 @@ public class MainActivity extends AppCompatActivity{
         txtHours.setTextColor(Color.parseColor(detailArray[2]));
         txtDate.setText(detailArray[3] + "," + detailArray[4]); //two arrays because they are by default separated with a comma
         txtInfo.setText(detailArray[5]);
+        txtTeacher.setText(detailArray[6]);
 
-        //get ClassValue of ClassPreference
-        SharedPreferences classNamePreference = getSharedPreferences("className", 0);
-        String className = classNamePreference.getString("class","");
-        txtClass.setText(className);
+        txtClass.setText(classNameString);
 
         mBuilder.setView(mView);
         final AlertDialog dialog = mBuilder.create();

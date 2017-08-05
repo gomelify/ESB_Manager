@@ -7,4 +7,6 @@
     <color name="cancelledColor">#c62828</color>
     <color name="Grey">#757575</color>
     <color name="LighterGrey">#9e9e9e</color>
+    <item name="visible" type="id"/>
+    <item name="masked" type="id"/>
 </resources>

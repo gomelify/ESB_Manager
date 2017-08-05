@@ -33,4 +33,13 @@
         app:layout_anchor="@+id/include"
         app:layout_anchorGravity="center_vertical|center_horizontal" />
 
+    <android.support.design.widget.BottomNavigationView
+        android:id="@+id/navigation"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom"
+        android:background="@color/cardview_light_background"
+        app:elevation="10dp"
+        app:menu="@menu/navigation" />
+
 </android.support.design.widget.CoordinatorLayout>

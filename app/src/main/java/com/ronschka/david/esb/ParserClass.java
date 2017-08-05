@@ -55,7 +55,8 @@ public class ParserClass extends AsyncTask<String, Void, String>{
 
         }catch(Exception e){
             Log.d("ESBLOG", "Internet connection failed!");
-            e.printStackTrace();}
+            e.printStackTrace();
+        }
 
         return parsedText;
     }
