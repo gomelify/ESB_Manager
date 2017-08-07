@@ -7,9 +7,9 @@
         android:title="Stundenplan" />
 
     <item
-        android:id="@+id/navigation_suitable"
+        android:id="@+id/navigation_substitution"
         android:icon="@drawable/ic_format_list_bulleted_black_24dp"
-        android:title="Vertetung" />
+        android:title="Vertetungen" />
 
     <item
         android:id="@+id/navigation_homework"

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Vertretungsplan</string>
+    <string name="app_name">ESB Manager</string>
     <string name="action_settings">Einstellungen</string>
     <string name="class_preference_title">Klassenauswahl</string>
     <string name="sync_preference_title">Synchronisieren</string>

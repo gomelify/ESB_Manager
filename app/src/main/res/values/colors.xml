@@ -9,4 +9,22 @@
     <color name="LighterGrey">#9e9e9e</color>
     <item name="visible" type="id"/>
     <item name="masked" type="id"/>
+
+    <color name="MaterialRed">#E53935</color>
+    <color name="MaterialDeepRed">#C62828</color>
+    <color name="MaterialPink">#E91E63</color>
+    <color name="MaterialPurple">#9C27B0</color>
+    <color name="MaterialDeepPurple">#673AB7</color>
+    <color name="MaterialIndigo">#3F51B5</color>
+    <color name="MaterialBlue">#2196F3</color>
+    <color name="MaterialLightBlue">#039BE5</color>
+    <color name="MaterialCyan">#0097A7</color>
+    <color name="MaterialTeal">#009688</color>
+    <color name="MaterialGreen">#2E7D32</color>
+    <color name="MaterialLightGreen">#689F38</color>
+    <color name="MaterialAmber">#FFB300</color>
+    <color name="MaterialOrange">#EF6C00</color>
+    <color name="MaterialDeepOrange">#E64A19</color>
+
+
 </resources>

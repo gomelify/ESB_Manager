@@ -8,6 +8,8 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -22,21 +24,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
-
 public class MainActivity extends AppCompatActivity{
 
     private SwipeRefreshLayout swipeContainer;
     private String classNameString;
+    private int previous = R.id.navigation_plan; //previous view check
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,31 +59,70 @@ public class MainActivity extends AppCompatActivity{
             Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
             setSupportActionBar(toolbar);
 
+            final ViewFlipper viewFlipper = (ViewFlipper)findViewById(R.id.viewFliper);
+            viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this,
+                    R.anim.fade_in));
+            viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this,
+                   R.anim.fade_out));
+            viewFlipper.setDisplayedChild(0);
+
+            //bottom navigation interface
+            BottomNavigationView bottomNavigationView = (BottomNavigationView)findViewById(R.id.navigation);
+            bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+                //switch views
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    if (previous != item.getItemId()) {
+                        switch ((item.getItemId())) {
+                            case R.id.navigation_plan:
+                                previous = R.id.navigation_plan;
+                                viewFlipper.setDisplayedChild(0);
+                                break;
+                            case R.id.navigation_substitution:
+                                viewFlipper.setDisplayedChild(1);
+                                previous = R.id.navigation_substitution;
+
+                                //SwipeRefresher
+                                swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+                                swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                                    @Override
+                                    public void onRefresh() {
+                                        //get ClassValue of ClassPreference
+                                        SharedPreferences className = getSharedPreferences("className", 0);
+                                        String classNameString = className.getString("class", "");
+
+                                        parseUrl(classNameString);
+                                    }
+                                });
+                                // Configure the refreshing colors
+                                swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
+                                //and start parsing
+                                parseUrl(classNameString);
+                                break;
+                            case R.id.navigation_homework:
+                                viewFlipper.setDisplayedChild(2);
+                                previous = R.id.navigation_homework;
+                                break;
+                            case R.id.navigation_exam:
+                                viewFlipper.setDisplayedChild(3);
+                                previous = R.id.navigation_exam;
+                                break;
+                        }
+                    }
+
+                    return true;
+                }
+            });
+
             //opens php class for string echo with class, teacher and room information
             PhpClass php = new PhpClass();
             php.setContext(getApplicationContext());
             php.execute();
 
-            //SwipeRefresher
-            swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-            swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    //get ClassValue of ClassPreference
-                    SharedPreferences className = getSharedPreferences("className", 0);
-                    String classNameString = className.getString("class","");
-
-                    parseUrl(classNameString);
-                }
-            });
-            // Configure the refreshing colors
-            swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
-
             //get ClassValue of ClassPreference
             SharedPreferences className = getSharedPreferences("className", 0);
             classNameString = className.getString("class","");
-            //and start parsing
-            parseUrl(classNameString);
         }
     }
 
@@ -164,7 +207,10 @@ public class MainActivity extends AppCompatActivity{
         //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/28/w00000.htm";
 
         //for the internal tests
-        String url = "http://jockisch-is-mr-hamster.getforge.io/28/w000" + attach + ".htm";
+        String urlSub = "http://jockisch-is-mr-hamster.getforge.io/28/w000" + attach + ".htm";
+        String urlTable = "http://jockisch-is-hamster-yet.getforge.io/info/28/c00015.htm";
+
+        String url = urlSub + " , " + urlTable;
 
         //get Userdata of LoginPreference
         SharedPreferences login = getSharedPreferences("Login", 0);

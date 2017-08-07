@@ -22,7 +22,7 @@ public class ParserClass extends AsyncTask<String, Void, String>{
 
     @Override
     protected String doInBackground(String... data) {
-        String url = data[0];
+        String url[] = data[0].split(" , "); //0 is sub, 1 is table
         String user = data[1];
         String password = data[2];
 
@@ -37,11 +37,11 @@ public class ParserClass extends AsyncTask<String, Void, String>{
                     .get(); */
 
             //local use
-            Document doc = Jsoup.connect(url)
+            Document doc1 = Jsoup.connect(url[0])
                     .timeout(10000)
                     .get();
 
-            parsedText = doc.text();
+            parsedText = doc1.text();
 
             //delete unnecessary parts
             parsedText = parsedText.replaceFirst("Montag","[ Montag ]");
@@ -52,6 +52,14 @@ public class ParserClass extends AsyncTask<String, Void, String>{
             parsedText = parsedText.replaceAll(" Mi ", " ~ ");
             parsedText = parsedText.replaceAll(" Do ", " ~ ");
             parsedText = parsedText.replaceAll(" Fr ", " ~ ");
+
+            //local use
+            Document doc2 = Jsoup.connect(url[1])
+                    .timeout(10000)
+                    .get();
+
+            String test = doc2.text();
+            Log.d("ESBLOG","TIMETABLE: " + test);
 
         }catch(Exception e){
             Log.d("ESBLOG", "Internet connection failed!");
