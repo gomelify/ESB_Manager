@@ -10,13 +10,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class InitialSetupActivity extends AppCompatActivity{
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,16 +26,14 @@ public class InitialSetupActivity extends AppCompatActivity{
         final Spinner spinner = (Spinner) findViewById(R.id.spinner);
         final Button button = (Button) findViewById(R.id.btnNext);
 
-        // Initializing a String Array
-        String[] plants = new String[]{
-                "Select an item...",
-                "California sycamore",
-                "Mountain mahogany",
-                "Butterfly weed",
-                "Carrot weed"
-        };
+        SharedPreferences pref = getSharedPreferences("phpData", 0);
+        String phpData = pref.getString("PHP", "");
 
-        final List<String> plantsList = new ArrayList<>(Arrays.asList(plants));
+        // Initializing a String Array
+        String phpDataAll[] = phpData.split("SPLIT");
+        String phpClasses[] = phpDataAll[1].split(",");
+
+        final List<String> plantsList = new ArrayList<>(Arrays.asList(phpClasses));
 
         // Initializing an ArrayAdapter
         final ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(
@@ -61,14 +59,6 @@ public class InitialSetupActivity extends AppCompatActivity{
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedItemText = (String) parent.getItemAtPosition(position);
-                // If user change the default selection
-                // First item is disable and it is used for hint
-                if(position > 0){
-                    // Notify the selected item text
-                    Toast.makeText
-                            (getApplicationContext(), "Selected : " + selectedItemText, Toast.LENGTH_SHORT)
-                            .show();
-                }
             }
 
             @Override
@@ -79,10 +69,23 @@ public class InitialSetupActivity extends AppCompatActivity{
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //save the new classValue
+                SharedPreferences className = getSharedPreferences("className", 0);
+                SharedPreferences.Editor editClass = className.edit();
+
+                //Delete old data
+                editClass.clear();
+                editClass.apply();
+
+                //Put new data in
+                editClass.putString("class", spinner.getSelectedItem().toString());
+                editClass.apply();
+
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
                 SharedPreferences.Editor edit = prefs.edit();
                 edit.putBoolean(getString(R.string.pref_previously_started), Boolean.TRUE);
                 edit.commit();
+
                 Intent main = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(main);
             }

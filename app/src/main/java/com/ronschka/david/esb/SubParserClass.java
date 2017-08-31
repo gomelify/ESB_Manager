@@ -7,7 +7,7 @@ import android.util.Log;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-public class ParserClass extends AsyncTask<String, Void, String>{
+public class SubParserClass extends AsyncTask<String, Void, String>{
 
     public interface AsyncResponse {
         void processFinish(String output);
@@ -16,7 +16,7 @@ public class ParserClass extends AsyncTask<String, Void, String>{
     public AsyncResponse delegate = null;
     private String parsedText;
 
-    public ParserClass(AsyncResponse delegate){
+    public SubParserClass(AsyncResponse delegate){
         this.delegate = delegate;
     }
 
@@ -31,17 +31,20 @@ public class ParserClass extends AsyncTask<String, Void, String>{
 
         try{
             //online use
-            /*Document doc = Jsoup.connect(url)
-                    .header("Authorization", "Basic " + encoded)
-                    .timeout(10000)
-                    .get(); */
-
-            //local use
             Document doc1 = Jsoup.connect(url[0])
-                    .timeout(10000)
+                    .header("Authorization", "Basic " + encoded)
+                    .timeout(5000)
                     .get();
 
-            parsedText = doc1.text();
+            Document doc2 = Jsoup.connect(url[1])
+                    .header("Authorization", "Basic " + encoded)
+                    .timeout(5000)
+                    .get();
+
+            String nextWeek = doc2.text();
+            nextWeek = nextWeek.replaceFirst("Montag","[ Montag ]");
+
+            parsedText = doc1.text() + " SPLIT " + nextWeek;
 
             //delete unnecessary parts
             parsedText = parsedText.replaceFirst("Montag","[ Montag ]");
@@ -52,14 +55,6 @@ public class ParserClass extends AsyncTask<String, Void, String>{
             parsedText = parsedText.replaceAll(" Mi ", " ~ ");
             parsedText = parsedText.replaceAll(" Do ", " ~ ");
             parsedText = parsedText.replaceAll(" Fr ", " ~ ");
-
-            //local use
-            Document doc2 = Jsoup.connect(url[1])
-                    .timeout(10000)
-                    .get();
-
-            String test = doc2.text();
-            Log.d("ESBLOG","TIMETABLE: " + test);
 
         }catch(Exception e){
             Log.d("ESBLOG", "Internet connection failed!");

@@ -33,10 +33,10 @@
             layout="@layout/activity_timetable" />
         <include
             android:id="@+id/include2"
-            layout="@layout/activity_recycler_view" />
+            layout="@layout/activity_substitution" />
         <include
             android:id="@+id/include3"
-            layout="@layout/activity_login_setup" />
+            layout="@layout/activity_homework" />
         <include
             android:id="@+id/include4"
             layout="@layout/activity_setup" />

@@ -17,7 +17,9 @@ import java.util.List;
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder>{
     ArrayList<String> array;
     MainActivity mainActivity;
-    String date[] = new String[5];
+    String cancelColor, otherColor, roomchangeColor, eventColor, changeColor;
+
+    String date[] = new String[10];
     String fullInformationStr; //this String contains redundancy controlled information
     int currentViewType = 0;
     int year = Calendar.getInstance().get(Calendar.YEAR);
@@ -25,6 +27,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     public RecyclerAdapter(ArrayList<String> array, MainActivity mainAct) {
         this.mainActivity = mainAct;
         this.array = array;
+
+        //colors for the different cases
+        cancelColor = "#C62828";
+        otherColor = "#9C27B0";
+        roomchangeColor = "#009688";
+        eventColor = "#EF6C00";
+        changeColor = "#2E7D32";
+
         date = array.get(0).split(","); //array 0 is date in string
     }
 
@@ -120,6 +130,26 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                     dateString = "Freitag, " + date[position] + year;
                     holder.day.setText(dateString);
                     break;
+                case 6:
+                    dateString = "Montag, " + date[position] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 7:
+                    dateString = "Dienstag, " + date[position] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 8:
+                    dateString = "Mittwoch, " + date[position] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 9:
+                    dateString = "Donnerstag, " + date[position] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 10:
+                    dateString = "Freitag, " + date[position] + year;
+                    holder.day.setText(dateString);
+                    break;
             }
         }
 
@@ -167,7 +197,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 if (infoString.contains("Fällt aus")) {
 
                     strHead = "Entfall";
-                    strColor = "#C62828";
+                    strColor = cancelColor;
 
                     String[] splitter = infoString.split(" ");
                     String info[];
@@ -202,7 +232,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                     String[] splitter = infoString.split("Mitbetreuung");
 
                     strHead = "Mitbetreuung";
-                    strColor = "#7B1FA2";
+                    strColor = otherColor;
 
                     //if no reason is added
                     if (splitter.length == 1) {
@@ -228,7 +258,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                         detailRoom = split[split.length - 1];
                         detailTeacher = split[split.length - 2];
 
-                        strInfo = "Lehrer: " + detailTeacher + ", in Raum: " + detailRoom + ", Info: " + detailInfo;
+                        strInfo = "Lehrer: " + detailTeacher + ", in Raum: " + detailRoom; //+ ", Info: " + detailInfo;
 
                         if (splitter[0].contains("-")) {
                             strHours = split[split.length - 5] + "-" + split[split.length - 3];
@@ -241,7 +271,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 //Case: Raumwechsel
                 else if (infoString.contains("Anderer Raum!")) {
                     strHead = "Raumwechsel";
-                    strColor = "#01579B";
+                    strColor = roomchangeColor;
 
                     String splitter[] = infoString.split(" ");
 
@@ -259,7 +289,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 //Case: Veranstaltung
                 else if(infoString.contains("Veranst.")){
                     strHead = "Veranstaltung";
-                    strColor = "#E65100";
+                    strColor = eventColor;
 
                     String newInfoString = infoString.replaceAll("   "," ");
                     String splitter[] = newInfoString.split(" " , 5);
@@ -283,7 +313,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 //Case: Vertretung
                 else if(!infoString.isEmpty()) {
                     strHead = "Vertretung";
-                    strColor = "#2E7D32";
+                    strColor = changeColor;
 
                     String splitter[] = infoString.split(" ");
 
@@ -316,6 +346,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 //also put onClick on different relativeLayouts of the cards
                 switch (actualInfoCounter + 1) {
                     case 1:
+                        //uses to much space
+                        if(strHours.length() > 4){
+                            holder.hour1.setTextSize(22);
+                        }
+
                         //set data
                         holder.head1.setText(strHead);
                         holder.hour1.setText(strHours);
@@ -344,15 +379,18 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                         holder.card1.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Log.d("ESBLOG", "CLICK! " + finalStrHead + " " + finalStrHours +  " " + finalStrInfo);
-
                                 String detail = finalStrHead + "," + finalStrHours + "," + finalStrColor
-                                        + "," + finalStrDate + "," + finalStrInfo + "," + finalStrTeacher;
+                                        + "," + finalStrDate + "," + finalStrInfo + "," + finalStrTeacher + "," + finalStrRoom;
                                 mainActivity.onCreateDetailView(detail);
                             }
                         });
                         break;
                     case 2:
+                        //uses to much space
+                        if(strHours.length() > 4){
+                            holder.hour2.setTextSize(22);
+                        }
+
                         //set data
                         holder.head2.setText(strHead);
                         holder.hour2.setText(strHours);
@@ -380,6 +418,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                         });
                         break;
                     case 3:
+                        //uses to much space
+                        if(strHours.length() > 4){
+                            holder.hour3.setTextSize(22);
+                        }
+
                         //set data
                         holder.head3.setText(strHead);
                         holder.hour3.setText(strHours);
@@ -469,11 +512,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 //they have same info
                 if(check1[3].equals(check2[3])){
                     newHours = " " + check1[2] + " - " + check2[2] + " "; //important spaces because we delete the old in the replace process
-                    Log.d("ESBLOG", "redun TRUE!");
                     return info[0].replace(" " + check1[2] + " ", newHours); //replace old String hours with new one
                 }
                 else{
-                    Log.d("ESBLOG", "redun FALSE!");
                     return checkString; //no redundancies -> return parameter
                 }
             }
@@ -488,18 +529,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 //they have same info
                 if (check1[3].equals(check2[3])) {
                     newHours = " " + check1[2] + " - " + check2[2] + " ";
-                    Log.d("ESBLOG", "redun TRUE!");
                     return info[0].replace(" " + check1[2] + " ", newHours) + " ~ " + info[2];
                 } else if (check2[3].equals(check3[3])) {
                     newHours = " " + check2[2] + " - " + check3[2] + " ";
-                    Log.d("ESBLOG", "redun TRUE!");
                     return info[0] + " ~ " + info[1].replace(" " + check2[2] + " ", newHours);
                 } else if (check1[3].equals(check2[3]) && check2[3].equals(check3[3])) {
                     newHours = " " + check1[2] + " - " + check2[2] + " ";
-                    Log.d("ESBLOG", "redun TRUE!");
                     return info[0].replace(" " + check1[2] + " ", newHours); //replace old String hours with new one
                 } else {
-                    Log.d("ESBLOG", "redun FALSE!");
                     return checkString;
                 }
             }
@@ -516,27 +553,20 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 //they have same info
                 if (check1[3].equals(check2[3])) {
                     newHours = " " + check1[2] + " - " + check2[2] + " ";
-                    Log.d("ESBLOG", "redun TRUE!");
                     return info[0].replace(" " + check1[2] + " ", newHours) + " ~ " + info[2] + " ~ " + info[3];
                 } else if (check2[3].equals(check3[3])) {
                     newHours = " " + check2[2] + " - " + check3[2] + " ";
-                    Log.d("ESBLOG", "redun TRUE!");
                     return info[0] + " ~ " + info[1].replace(" " + check2[2] + " ", newHours) + " ~ " + info[3];
                 } else if (check3[3].equals(check4[3])) {
                     newHours = " " + check3[2] + " - " + check4[2] + " ";
-                    Log.d("ESBLOG", "redun TRUE!");
                     return info[0] + " ~ " + info[1] +  " ~ " + info[2].replace(" " + check3[2] + " ", newHours);
                 } else if (check1[3].equals(check2[3]) && check2[3].equals(check3[3])) {
                     newHours = " " + check1[2] + " - " + check2[2] + " ";
-                    Log.d("ESBLOG", "redun TRUE!");
                     return info[0].replace(" " + check1[2] + " ", newHours); //replace old String hours with new one
                 } else {
-                    Log.d("ESBLOG", "redun FALSE!");
                     return checkString;
                 }
             }
-
-            Log.d("ESBLOG", "redun FALSE!");
             return checkString;
         }
     }

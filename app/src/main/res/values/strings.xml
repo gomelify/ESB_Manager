@@ -18,7 +18,7 @@
     <string name="search">Suche</string>
     <string name="pref_previously_started">previously_started</string>
     <string name="initialSetup">Ersteinrichtung</string>
-    <string name="setup_class">Klasse auswählen</string>
+    <string name="setup_class">Wähle deine Klasse aus</string>
     <string name="title_activity_login">Anmeldung</string>
 
     <!-- Strings related to login -->
@@ -39,4 +39,10 @@
         completions."
     </string>
     <string name="error_no_Internet">Keine Internetverbindung</string>
+    <string name="hw_subject">Fach</string>
+    <string name="hw_title">Titel</string>
+    <string name="hw_until">Bis</string>
+    <string name="hw_info">Zusatzinformationen</string>
+    <string name="hw_urgent">Wichtig</string>
+    <string name="add_homework">Hausaufgabe hinzufügen</string>
 </resources>

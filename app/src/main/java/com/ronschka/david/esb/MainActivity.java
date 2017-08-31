@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -25,11 +26,9 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AnimationUtils;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import java.util.ArrayList;
@@ -49,12 +48,28 @@ public class MainActivity extends AppCompatActivity{
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         boolean previouslyStarted = prefs.getBoolean(getString(R.string.pref_previously_started), false);
         if(!previouslyStarted) {
+            //opens php class for string echo with class, teacher and room information
+            PhpClass php = new PhpClass();
+            php.setContext(getApplicationContext());
+            php.execute();
+
             Intent login = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(login);
             finish();
             Log.d("ESBLOG", "FIRST START!");
         }
         else{
+            //only test purpose
+            SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+            SharedPreferences.Editor edit = prefs2.edit();
+            edit.putBoolean(getString(R.string.pref_previously_started), Boolean.FALSE);
+            edit.commit();
+
+            //opens php class for string echo with class, teacher and room information
+            PhpClass php = new PhpClass();
+            php.setContext(getApplicationContext());
+            php.execute();
+
             setContentView(R.layout.activity_main);
             Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
             setSupportActionBar(toolbar);
@@ -65,6 +80,32 @@ public class MainActivity extends AppCompatActivity{
             viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this,
                    R.anim.fade_out));
             viewFlipper.setDisplayedChild(0);
+
+            //SwipeRefresher -> substitution
+            swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+            swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    //get ClassValue of ClassPreference
+                    SharedPreferences className = getSharedPreferences("className", 0);
+                    String classNameString = className.getString("class", "");
+
+                    parseSubstitution(classNameString);
+                }
+            });
+            // Configure the refreshing colors
+            swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
+
+            final ScrollView scrollView = (ScrollView)findViewById(R.id.scroller);
+
+            //fab -> homework
+            FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fabHomework);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(new Intent(getApplicationContext(), AddHomework.class));
+                }
+            });
 
             //bottom navigation interface
             BottomNavigationView bottomNavigationView = (BottomNavigationView)findViewById(R.id.navigation);
@@ -82,23 +123,6 @@ public class MainActivity extends AppCompatActivity{
                             case R.id.navigation_substitution:
                                 viewFlipper.setDisplayedChild(1);
                                 previous = R.id.navigation_substitution;
-
-                                //SwipeRefresher
-                                swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-                                swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                                    @Override
-                                    public void onRefresh() {
-                                        //get ClassValue of ClassPreference
-                                        SharedPreferences className = getSharedPreferences("className", 0);
-                                        String classNameString = className.getString("class", "");
-
-                                        parseUrl(classNameString);
-                                    }
-                                });
-                                // Configure the refreshing colors
-                                swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
-                                //and start parsing
-                                parseUrl(classNameString);
                                 break;
                             case R.id.navigation_homework:
                                 viewFlipper.setDisplayedChild(2);
@@ -110,69 +134,36 @@ public class MainActivity extends AppCompatActivity{
                                 break;
                         }
                     }
+                    else{
+                        switch (previous) {
+                            case R.id.navigation_plan:
+                                Log.d("ESBLOG", "TRIGGER!" + scrollView);
+
+                                break;
+                            case R.id.navigation_substitution:
+                                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler);
+                                recyclerView.smoothScrollToPosition(0);
+                                break;
+                            case R.id.navigation_homework:
+                                break;
+                            case R.id.navigation_exam:
+                                break;
+                        }
+                    }
 
                     return true;
                 }
             });
 
-            //opens php class for string echo with class, teacher and room information
-            PhpClass php = new PhpClass();
-            php.setContext(getApplicationContext());
-            php.execute();
-
             //get ClassValue of ClassPreference
             SharedPreferences className = getSharedPreferences("className", 0);
             classNameString = className.getString("class","");
+            parseSubstitution(classNameString);
         }
     }
 
-    public boolean onCreateLoginWindow() {
-        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-        View mView = getLayoutInflater().inflate(R.layout.activity_login, null);
-        final EditText mUser = (EditText) mView.findViewById(R.id.edUsername);
-        final EditText mPassword = (EditText) mView.findViewById(R.id.edPassword);
-        Button mLogin = (Button) mView.findViewById(R.id.btnLogin);
-        mBuilder.setView(mView);
-        final AlertDialog dialog = mBuilder.create();
 
-        mLogin.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                if(!mUser.getText().toString().isEmpty() && !mPassword.getText().toString().isEmpty()){
-
-                    //LoginData Storage
-                    SharedPreferences user_data = getSharedPreferences("Login", 0);
-                    SharedPreferences.Editor edit = user_data.edit();
-
-                    //Delete old data
-                    edit.clear();
-                    edit.apply();
-
-                    //Put new data in
-                    edit.putString("Unm",mUser.getText().toString());
-                    edit.putString("Psw",mPassword.getText().toString());
-                    edit.apply();
-
-                    //get ClassValue of ClassPreference
-                    SharedPreferences className = getSharedPreferences("className", 0);
-                    String classNameString = className.getString("class","");
-                    parseUrl(classNameString);
-                    dialog.dismiss();
-                }
-                else{
-                    Toast.makeText(MainActivity.this,
-                            R.string.login_failed,
-                            Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation; //up-down animation
-        dialog.show();
-        return true;
-    }
-
-    public void parseUrl(String className){
+    public void parseSubstitution(String className){
         final ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar);
 
         //get the current week
@@ -203,14 +194,20 @@ public class MainActivity extends AppCompatActivity{
         }
 
         //this URL with the class attachment will be parsed
-        //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + currentWeek + "/w000" + attach + ".htm";
-        //String url = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/28/w00000.htm";
+        String urlSubCurrent = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + currentWeek + "/w000" + attach + ".htm";
 
-        //for the internal tests
-        String urlSub = "http://jockisch-is-mr-hamster.getforge.io/28/w000" + attach + ".htm";
-        String urlTable = "http://jockisch-is-hamster-yet.getforge.io/info/28/c00015.htm";
+        Calendar calendar = Calendar.getInstance();
+        int day = calendar.get(Calendar.DAY_OF_WEEK);
 
-        String url = urlSub + " , " + urlTable;
+        String urlSubNext = "";
+
+        //on the day after tuesday of the current week, there could be a plan for next week
+        if(day != Calendar.MONDAY && day != Calendar.TUESDAY){
+            urlSubNext = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + (currentWeek + 1) + "/w000" + attach + ".htm";
+        }
+
+        //for this and next week
+        String url = urlSubCurrent + " , " + urlSubNext;
 
         //get Userdata of LoginPreference
         SharedPreferences login = getSharedPreferences("Login", 0);
@@ -218,25 +215,28 @@ public class MainActivity extends AppCompatActivity{
         String pass = login.getString("Psw","");
 
         //receive the result fired from async class of onPostExecute(result) method
-        new ParserClass(new ParserClass.AsyncResponse() {
+        new SubParserClass(new SubParserClass.AsyncResponse() {
             @Override
             public void processFinish(String output) {
                 //checks if output was created
                 if(output != null) {
 
-                    RecyclerView recyclerView;
-                    ArrayList<String> parsedList = new ArrayList<>(
-                            Arrays.asList(output.split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
+                    String[] date = new String[10];
 
-                    String[] date = new String[5];
+                    Log.d("ESBLOG", "TEST 69: " + output);
+
+                    String[] splitOutput = output.split(" SPLIT ");
+                    RecyclerView recyclerView;
+                    ArrayList<String> parsedListCurrent = new ArrayList<>(
+                            Arrays.asList(splitOutput[0].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
 
                     //extend formatting
                     for (int i = 1; i < 7; i++) {
-                        String x = parsedList.get(i - 1);
+                        String x = parsedListCurrent.get(i - 1);
 
                         if (i == 1) {
                             //date of the first day (day 0) (no information)
-                            x = x.replaceAll("Untis 20176Eduard-Spranger-Berufskolleg Hamm1", "");
+                            x = x.replaceAll("Untis 2017  4  Eduard-Spranger-Berufskolleg Hamm  1", "");
                             x = x.replaceFirst(" ", "");
 
                             //date
@@ -258,8 +258,8 @@ public class MainActivity extends AppCompatActivity{
                                 x = x.replaceFirst("~ ","");
                             }
 
-                            parsedList.remove(i - 2);
-                            parsedList.add(i - 2, x);
+                            parsedListCurrent.remove(i - 2);
+                            parsedListCurrent.add(i - 2, x);
 
                             Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
                         } else {
@@ -290,12 +290,94 @@ public class MainActivity extends AppCompatActivity{
                                 x = x.trim();
                             }
                             x = x.trim();
-                            parsedList.remove(i - 2);
-                            parsedList.add(i - 2, x);
+                            parsedListCurrent.remove(i - 2);
+                            parsedListCurrent.add(i - 2, x);
 
                             Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
                         }
                     }//list 0 -> date | list 1 - 5 -> info
+
+                    //cluster which isn't needed
+                    parsedListCurrent.remove(5);
+
+                    if(!splitOutput[1].isEmpty()) {
+
+                        ArrayList<String> parsedListNext = new ArrayList<>(
+                                Arrays.asList(splitOutput[1].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
+
+                        //extend formatting
+                        for (int i = 1; i < 7; i++) {
+                            String x = parsedListNext.get(i - 1);
+
+                            if (i == 1) {
+                                //date of the first day (day 0) (no information)
+                                x = x.replaceAll("Untis 2017  4  Eduard-Spranger-Berufskolleg Hamm  1", "");
+                                x = x.replaceFirst(" ", "");
+
+                                //date
+                                String[] y0 = x.split(" ");
+                                date[5] = (y0[y0.length - 1]).trim();
+                            } else if (i == 2) {
+                                //day 1 information
+                                x = x.replaceAll("\\|", "");
+                                x = x.replaceAll("\\[", "");
+                                x = x.replaceAll("]", "");
+                                x = x.replaceFirst(" Dienstag ", "");
+                                x = x.replaceFirst(" Mittwoch ", "");
+                                x = x.replaceFirst(" Donnerstag ", "");
+                                x = x.replaceFirst(" Freitag ", "");
+                                x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
+                                x = x.trim(); //trims space on begin and end
+
+                                if (!x.contains("Nachrichten zum Tag")) {
+                                    x = x.replaceFirst("~ ", "");
+                                }
+
+                                parsedListNext.remove(i - 2);
+                                parsedListNext.add(i - 2, x);
+
+                                Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
+                            } else {
+                                //day 2 - 5 information
+                                x = x.replaceFirst(" ", "");
+                                x = x.replaceAll("\\|", "");
+                                x = x.replaceAll("\\[", "");
+                                x = x.replaceAll("]", "");
+                                x = x.replaceFirst(" Dienstag ", "");
+                                x = x.replaceFirst(" Mittwoch ", "");
+                                x = x.replaceFirst(" Donnerstag ", "");
+                                x = x.replaceFirst(" Freitag ", "");
+                                x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
+
+                                //date
+                                String[] split = x.split("\\.");
+                                date[i + 3] = (split[0] + "." + split[1] + ".").trim();
+
+                                //replace the date (only information is left)
+                                x = x.replaceFirst(date[i + 3], "");
+
+                                if (!x.contains("Nachrichten zum Tag")) {
+                                    x = x.replaceFirst("~ ", "");
+                                }
+                                if (i == 6) { //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
+                                    String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
+                                    x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
+                                    x = x.trim();
+                                }
+                                x = x.trim();
+                                parsedListNext.remove(i - 2);
+                                parsedListNext.add(i - 2, x);
+
+                                Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
+                            }
+                        }//list 0 -> date | list 5 - 10 -> info
+
+                        //cluster which isn't needed
+                        parsedListNext.remove(5);
+
+                        //add all lines of the nextWeek - list into current list
+                        parsedListCurrent.addAll(parsedListNext);
+                    }
 
                     //separate every date with a comma to save it as a string
                     StringBuilder dateBuilder = new StringBuilder();
@@ -303,19 +385,17 @@ public class MainActivity extends AppCompatActivity{
                         dateBuilder.append(n + ",");
                     }
                     dateBuilder.deleteCharAt(dateBuilder.length() - 1);
-                    parsedList.add(0, dateBuilder.toString());
-
-                    parsedList.remove(6);
+                    parsedListCurrent.add(0, dateBuilder.toString());
 
                     recyclerView = (RecyclerView) findViewById(R.id.recycler);
+                    recyclerView.setItemViewCacheSize(30);
+                    recyclerView.setDrawingCacheEnabled(true);
+                    recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
                     recyclerView.setHasFixedSize(true);
                     recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
 
-                    recyclerView.setAdapter(new RecyclerAdapter(parsedList, MainActivity.this) {
+                    recyclerView.setAdapter(new RecyclerAdapter(parsedListCurrent, MainActivity.this) {
                     });
-                }
-                else{
-                    onCreateLoginWindow();
                 }
 
                 //turn refresher off
@@ -358,7 +438,8 @@ public class MainActivity extends AppCompatActivity{
             return true;
         }
         else if (id == R.id.action_login) {
-            onCreateLoginWindow();
+            Intent login = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(login);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -381,13 +462,15 @@ public class MainActivity extends AppCompatActivity{
                 edit.putString("class",returnedResult);
                 edit.apply();
 
-                parseUrl(returnedResult);
+                parseSubstitution(returnedResult);
             }
         }
     }
 
     public void onCreateDetailView(String detail){
         String detailArray[] = detail.split(",");
+
+        Log.d("ESBLOG", "CLICK: " + detail);
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
         final View mView = getLayoutInflater().inflate(R.layout.activity_details, null);
@@ -397,6 +480,9 @@ public class MainActivity extends AppCompatActivity{
         TextView txtClass = (TextView) mView.findViewById(R.id.txtClassDetail);
         TextView txtInfo = (TextView)mView.findViewById(R.id.txtInfoDetail);
         TextView txtTeacher = (TextView)mView.findViewById(R.id.txtTeacherDetail);
+        TextView txtRoom = (TextView)mView.findViewById(R.id.txtRoomDetail);
+
+        // Array explanation 0 -> head, 1 -> hours, 2 -> color, 3 and 4 -> Date, 5 -> Info, 6 -> Teacher, 7 -> Room
 
         //set handed details
         txtCase.setText(detailArray[0]);
@@ -406,8 +492,27 @@ public class MainActivity extends AppCompatActivity{
         txtDate.setText(detailArray[3] + "," + detailArray[4]); //two arrays because they are by default separated with a comma
         txtInfo.setText(detailArray[5]);
         txtTeacher.setText(detailArray[6]);
+        txtRoom.setText(detailArray[7]);
 
         txtClass.setText(classNameString);
+
+        if(detailArray[5].equals(" ")){
+            mView.findViewById(R.id.imgDescription).setVisibility(View.GONE);
+            mView.findViewById(R.id.txtViewDescription).setVisibility(View.GONE);
+        }
+
+        if(detailArray[6].equals(" ")){
+            mView.findViewById(R.id.imgTeacher).setVisibility(View.GONE);
+            mView.findViewById(R.id.txtViewTeacher).setVisibility(View.GONE);
+        }
+
+        if(detailArray[7].equals(" ")){
+            mView.findViewById(R.id.imgRoom).setVisibility(View.GONE);
+            mView.findViewById(R.id.txtViewRoom).setVisibility(View.GONE);
+        }
+        if(detailArray[1].length() > 4){
+            txtHours.setTextSize(28);
+        }
 
         mBuilder.setView(mView);
         final AlertDialog dialog = mBuilder.create();
@@ -431,12 +536,8 @@ public class MainActivity extends AppCompatActivity{
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onScroll(MotionEvent event1, MotionEvent event2, float distanceX, float distanceY) {
-            if(distanceX > -25 && distanceX < 25 && distanceY < -8){ //Down-gesture
-                return true;
-            }
-            else{
-                return false;
-            }
+            //Down-gesture
+            return distanceX > -25 && distanceX < 25 && distanceY < -8;
         }
     }
 }
