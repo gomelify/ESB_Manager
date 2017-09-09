@@ -26,5 +26,27 @@
     <color name="MaterialOrange">#EF6C00</color>
     <color name="MaterialDeepOrange">#E64A19</color>
 
+    <color name="standardRoomChange">#EF6C00</color>
+    <color name="specialOrange">#E65100</color>
+    <color name="specialDeepOrange">#FF3D00</color>
+    <color name="specialRed">#F44336</color>
+    <color name="standardCancel">#C62828</color>
+    <color name="standardEvent">#EC407A</color>
+    <color name="specialPink">#E91E63</color>
+    <color name="specialPink2">#AD1457</color>
+    <color name="standardWithOther">#9C27B0</color>
+    <color name="specialPurple2">#6A1B9A</color>
+    <color name="specialDeepPurple">#4527A0</color>
+    <color name="specialIndigo">#3F51B5</color>
+    <color name="specialIndigo2">#283593</color>
+    <color name="standardSpecial">#01579B</color>
+    <color name="specialBlue">#1565C0</color>
+    <color name="specialLightBlue">#0288D1</color>
+    <color name="specialCyan">#00838F</color>
+    <color name="specialTeal">#00695C</color>
+    <color name="specialLightGreen">#689F38</color>
+    <color name="standardChange">#2E7D32</color>
+    <color name="specialDarkGreen">#1B5E20</color>
+
 
 </resources>

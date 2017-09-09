@@ -28,4 +28,9 @@
         <item name="android:windowEnterAnimation">@anim/slide_up</item>
         <item name="android:windowExitAnimation">@anim/slide_down</item>
     </style>
+
+    <style name="splashScreenTheme" parent="@style/AppTheme">
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+    </style>
+
 </resources>

@@ -42,8 +42,6 @@ public class InitialSetupActivity extends AppCompatActivity{
             public boolean isEnabled(int position){
                 if(position == 0)
                 {
-                    // Disable the first item from Spinner
-                    // First item will be use for hint
                     return false;
                 }
                 else
@@ -80,6 +78,12 @@ public class InitialSetupActivity extends AppCompatActivity{
                 //Put new data in
                 editClass.putString("class", spinner.getSelectedItem().toString());
                 editClass.apply();
+
+                //Put data into classList preference
+                SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString("classList", "" + (spinner.getSelectedItemPosition() + 1));
+                editor.commit();
 
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
                 SharedPreferences.Editor edit = prefs.edit();

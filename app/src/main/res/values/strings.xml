@@ -45,4 +45,16 @@
     <string name="hw_info">Zusatzinformationen</string>
     <string name="hw_urgent">Wichtig</string>
     <string name="add_homework">Hausaufgabe hinzufügen</string>
+    <string name="pref_substitution">Vertretungsplan</string>
+    <string name="color_picker_substitution">Farbauswahl</string>
+    <string name="colorListActivity">Farbauswahl</string>
+    <string name="substitution">Entfall</string>
+    <string name="teacherChange">Vertretung</string>
+    <string name="roomChange">Raumwechsel</string>
+    <string name="event">Veranstaltung</string>
+    <string name="co_supervision">Mitbetreuung</string>
+    <string name="message_of_the_day">Nachricht des Tages</string>
+    <string name="choose_color">Wähle eine Farbe</string>
+    <string name="reset_colors">Farben zurücksetzen</string>
+    <string name="sure_color_reset">Möchten Sie alle Farben zurücksetzen?</string>
 </resources>

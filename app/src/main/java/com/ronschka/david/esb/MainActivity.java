@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity{
             //only test purpose
             SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             SharedPreferences.Editor edit = prefs2.edit();
-            edit.putBoolean(getString(R.string.pref_previously_started), Boolean.FALSE);
+            edit.putBoolean(getString(R.string.pref_previously_started), Boolean.TRUE);
             edit.commit();
 
             //opens php class for string echo with class, teacher and room information
@@ -185,25 +186,32 @@ public class MainActivity extends AppCompatActivity{
             getSupportActionBar().setTitle(getString(R.string.app_name) + " - " + className);
         }
 
-        //system expects format like '00', '01', .. '99' etc.
-        if(classNumber.length() < 2){
-            attach = "0" + classNumber;
+        String urlSubCurrent;
+        String urlSubNext = " ";
+
+        //TEST PURPOSE
+        if(className.equals("TEST")){
+            urlSubCurrent = "http://monkey-179.getforge.io/w/36/w00019.htm";
+            urlSubNext = "http://monkey-179.getforge.io/w/37/w00019.htm";
         }
-        else{
-            attach = classNumber;
-        }
+        else {
+            //system expects format like '00', '01', .. '99' etc.
+            if (classNumber.length() < 2) {
+                attach = "0" + classNumber;
+            } else {
+                attach = classNumber;
+            }
 
-        //this URL with the class attachment will be parsed
-        String urlSubCurrent = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + currentWeek + "/w000" + attach + ".htm";
+            //this URL with the class attachment will be parsed
+            urlSubCurrent = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + currentWeek + "/w000" + attach + ".htm";
 
-        Calendar calendar = Calendar.getInstance();
-        int day = calendar.get(Calendar.DAY_OF_WEEK);
+            Calendar calendar = Calendar.getInstance();
+            int day = calendar.get(Calendar.DAY_OF_WEEK);
 
-        String urlSubNext = "";
-
-        //on the day after tuesday of the current week, there could be a plan for next week
-        if(day != Calendar.MONDAY && day != Calendar.TUESDAY){
-            urlSubNext = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + (currentWeek + 1) + "/w000" + attach + ".htm";
+            //on the day after tuesday of the current week, there could be a plan for next week
+            if (day != Calendar.MONDAY && day != Calendar.TUESDAY) {
+                urlSubNext = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + (currentWeek + 1) + "/w000" + attach + ".htm";
+            }
         }
 
         //for this and next week
@@ -218,21 +226,101 @@ public class MainActivity extends AppCompatActivity{
         new SubParserClass(new SubParserClass.AsyncResponse() {
             @Override
             public void processFinish(String output) {
+                //Preference for substitution values
+                SharedPreferences parsedList = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
                 //checks if output was created
                 if(output != null) {
+                    SharedPreferences.Editor edit = parsedList.edit();
+                    edit.putString("parsedList", output);
+                    edit.commit();
+                }
+                String value = parsedList.getString("parsedList", "noValue");
 
-                    String[] date = new String[10];
+                String[] date = new String[10];
 
-                    Log.d("ESBLOG", "TEST 69: " + output);
+                String[] splitOutput = value.split(" SPLIT ");
+                RecyclerView recyclerView;
+                ArrayList<String> parsedListCurrent = new ArrayList<>(
+                        Arrays.asList(splitOutput[0].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
 
-                    String[] splitOutput = output.split(" SPLIT ");
-                    RecyclerView recyclerView;
-                    ArrayList<String> parsedListCurrent = new ArrayList<>(
-                            Arrays.asList(splitOutput[0].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
+                //extend formatting
+                for (int i = 1; i < 7; i++) {
+                    String x = parsedListCurrent.get(i - 1);
+
+                    if (i == 1) {
+                        //date of the first day (day 0) (no information)
+                        x = x.replaceAll("Untis 2017  4  Eduard-Spranger-Berufskolleg Hamm  1", "");
+                        x = x.replaceFirst(" ", "");
+
+                        //date
+                        String[] y0 = x.split(" ");
+                        date[0] = (y0[y0.length - 1]).trim();
+                    } else if (i == 2) {
+                        //day 1 information
+                        x = x.replaceAll("\\|","");
+                        x = x.replaceAll("\\[","");
+                        x = x.replaceAll("]","");
+                        x = x.replaceFirst(" Dienstag ", "");
+                        x = x.replaceFirst(" Mittwoch ", "");
+                        x = x.replaceFirst(" Donnerstag ", "");
+                        x = x.replaceFirst(" Freitag ", "");
+                        x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
+                        x = x.trim(); //trims space on begin and end
+
+                        if(!x.contains("Nachrichten zum Tag")){
+                            x = x.replaceFirst("~ ","");
+                        }
+
+                        parsedListCurrent.remove(i - 2);
+                        parsedListCurrent.add(i - 2, x);
+
+                        Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
+                    } else {
+                        //day 2 - 5 information
+                        x = x.replaceFirst(" ", "");
+                        x = x.replaceAll("\\|","");
+                        x = x.replaceAll("\\[","");
+                        x = x.replaceAll("]","");
+                        x = x.replaceFirst(" Dienstag ", "");
+                        x = x.replaceFirst(" Mittwoch ", "");
+                        x = x.replaceFirst(" Donnerstag ", "");
+                        x = x.replaceFirst(" Freitag ", "");
+                        x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
+
+                        //date
+                        String[] split = x.split("\\.");
+                        date[i - 2] = (split[0] + "." + split[1] + ".").trim();
+
+                        //replace the date (only information is left)
+                        x = x.replaceFirst(date[i - 2], "");
+
+                        if(!x.contains("Nachrichten zum Tag")){
+                            x = x.replaceFirst("~ ","");
+                        }
+                        if(i == 6){ //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
+                            String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
+                            x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
+                            x = x.trim();
+                        }
+                        x = x.trim();
+                        parsedListCurrent.remove(i - 2);
+                        parsedListCurrent.add(i - 2, x);
+
+                        Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
+                    }
+                }//list 0 -> date | list 1 - 5 -> info
+
+                //cluster which isn't needed
+                parsedListCurrent.remove(5);
+
+                if(value.contains("SPLIT")) { //only next week, if split is available
+
+                    ArrayList<String> parsedListNext = new ArrayList<>(
+                            Arrays.asList(splitOutput[1].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
 
                     //extend formatting
                     for (int i = 1; i < 7; i++) {
-                        String x = parsedListCurrent.get(i - 1);
+                        String x = parsedListNext.get(i - 1);
 
                         if (i == 1) {
                             //date of the first day (day 0) (no information)
@@ -241,12 +329,12 @@ public class MainActivity extends AppCompatActivity{
 
                             //date
                             String[] y0 = x.split(" ");
-                            date[0] = (y0[y0.length - 1]).trim();
+                            date[5] = (y0[y0.length - 1]).trim();
                         } else if (i == 2) {
                             //day 1 information
-                            x = x.replaceAll("\\|","");
-                            x = x.replaceAll("\\[","");
-                            x = x.replaceAll("]","");
+                            x = x.replaceAll("\\|", "");
+                            x = x.replaceAll("\\[", "");
+                            x = x.replaceAll("]", "");
                             x = x.replaceFirst(" Dienstag ", "");
                             x = x.replaceFirst(" Mittwoch ", "");
                             x = x.replaceFirst(" Donnerstag ", "");
@@ -254,20 +342,20 @@ public class MainActivity extends AppCompatActivity{
                             x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
                             x = x.trim(); //trims space on begin and end
 
-                            if(!x.contains("Nachrichten zum Tag")){
-                                x = x.replaceFirst("~ ","");
+                            if (!x.contains("Nachrichten zum Tag")) {
+                                x = x.replaceFirst("~ ", "");
                             }
 
-                            parsedListCurrent.remove(i - 2);
-                            parsedListCurrent.add(i - 2, x);
+                            parsedListNext.remove(i - 2);
+                            parsedListNext.add(i - 2, x);
 
-                            Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
+                            Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
                         } else {
                             //day 2 - 5 information
                             x = x.replaceFirst(" ", "");
-                            x = x.replaceAll("\\|","");
-                            x = x.replaceAll("\\[","");
-                            x = x.replaceAll("]","");
+                            x = x.replaceAll("\\|", "");
+                            x = x.replaceAll("\\[", "");
+                            x = x.replaceAll("]", "");
                             x = x.replaceFirst(" Dienstag ", "");
                             x = x.replaceFirst(" Mittwoch ", "");
                             x = x.replaceFirst(" Donnerstag ", "");
@@ -276,133 +364,155 @@ public class MainActivity extends AppCompatActivity{
 
                             //date
                             String[] split = x.split("\\.");
-                            date[i - 2] = (split[0] + "." + split[1] + ".").trim();
+                            date[i + 3] = (split[0] + "." + split[1] + ".").trim();
 
                             //replace the date (only information is left)
-                            x = x.replaceFirst(date[i - 2], "");
+                            x = x.replaceFirst(date[i + 3], "");
 
-                            if(!x.contains("Nachrichten zum Tag")){
-                                x = x.replaceFirst("~ ","");
+                            if (!x.contains("Nachrichten zum Tag")) {
+                                x = x.replaceFirst("~ ", "");
                             }
-                            if(i == 6){ //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
+                            if (i == 6) { //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
                                 String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
                                 x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
                                 x = x.trim();
                             }
                             x = x.trim();
-                            parsedListCurrent.remove(i - 2);
-                            parsedListCurrent.add(i - 2, x);
+                            parsedListNext.remove(i - 2);
+                            parsedListNext.add(i - 2, x);
 
-                            Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
+                            Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
                         }
-                    }//list 0 -> date | list 1 - 5 -> info
+                    }//list 0 -> date | list 5 - 10 -> info
 
                     //cluster which isn't needed
-                    parsedListCurrent.remove(5);
+                    parsedListNext.remove(5);
 
-                    if(!splitOutput[1].isEmpty()) {
-
-                        ArrayList<String> parsedListNext = new ArrayList<>(
-                                Arrays.asList(splitOutput[1].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
-
-                        //extend formatting
-                        for (int i = 1; i < 7; i++) {
-                            String x = parsedListNext.get(i - 1);
-
-                            if (i == 1) {
-                                //date of the first day (day 0) (no information)
-                                x = x.replaceAll("Untis 2017  4  Eduard-Spranger-Berufskolleg Hamm  1", "");
-                                x = x.replaceFirst(" ", "");
-
-                                //date
-                                String[] y0 = x.split(" ");
-                                date[5] = (y0[y0.length - 1]).trim();
-                            } else if (i == 2) {
-                                //day 1 information
-                                x = x.replaceAll("\\|", "");
-                                x = x.replaceAll("\\[", "");
-                                x = x.replaceAll("]", "");
-                                x = x.replaceFirst(" Dienstag ", "");
-                                x = x.replaceFirst(" Mittwoch ", "");
-                                x = x.replaceFirst(" Donnerstag ", "");
-                                x = x.replaceFirst(" Freitag ", "");
-                                x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-                                x = x.trim(); //trims space on begin and end
-
-                                if (!x.contains("Nachrichten zum Tag")) {
-                                    x = x.replaceFirst("~ ", "");
-                                }
-
-                                parsedListNext.remove(i - 2);
-                                parsedListNext.add(i - 2, x);
-
-                                Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
-                            } else {
-                                //day 2 - 5 information
-                                x = x.replaceFirst(" ", "");
-                                x = x.replaceAll("\\|", "");
-                                x = x.replaceAll("\\[", "");
-                                x = x.replaceAll("]", "");
-                                x = x.replaceFirst(" Dienstag ", "");
-                                x = x.replaceFirst(" Mittwoch ", "");
-                                x = x.replaceFirst(" Donnerstag ", "");
-                                x = x.replaceFirst(" Freitag ", "");
-                                x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-
-                                //date
-                                String[] split = x.split("\\.");
-                                date[i + 3] = (split[0] + "." + split[1] + ".").trim();
-
-                                //replace the date (only information is left)
-                                x = x.replaceFirst(date[i + 3], "");
-
-                                if (!x.contains("Nachrichten zum Tag")) {
-                                    x = x.replaceFirst("~ ", "");
-                                }
-                                if (i == 6) { //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
-                                    String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
-                                    x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
-                                    x = x.trim();
-                                }
-                                x = x.trim();
-                                parsedListNext.remove(i - 2);
-                                parsedListNext.add(i - 2, x);
-
-                                Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
-                            }
-                        }//list 0 -> date | list 5 - 10 -> info
-
-                        //cluster which isn't needed
-                        parsedListNext.remove(5);
-
-                        //add all lines of the nextWeek - list into current list
-                        parsedListCurrent.addAll(parsedListNext);
-                    }
-
-                    //separate every date with a comma to save it as a string
-                    StringBuilder dateBuilder = new StringBuilder();
-                    for (String n : date) {
-                        dateBuilder.append(n + ",");
-                    }
-                    dateBuilder.deleteCharAt(dateBuilder.length() - 1);
-                    parsedListCurrent.add(0, dateBuilder.toString());
-
-                    recyclerView = (RecyclerView) findViewById(R.id.recycler);
-                    recyclerView.setItemViewCacheSize(30);
-                    recyclerView.setDrawingCacheEnabled(true);
-                    recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-                    recyclerView.setHasFixedSize(true);
-                    recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-
-                    recyclerView.setAdapter(new RecyclerAdapter(parsedListCurrent, MainActivity.this) {
-                    });
+                    //add all lines of the nextWeek - list into current list
+                    parsedListCurrent.addAll(parsedListNext);
                 }
+
+                //separate every date with a comma to save it as a string
+                StringBuilder dateBuilder = new StringBuilder();
+                for (String n : date) {
+                    dateBuilder.append(n + ",");
+                }
+                dateBuilder.deleteCharAt(dateBuilder.length() - 1);
+                parsedListCurrent.add(0, dateBuilder.toString());
+
+                String withoutRedun;
+                //check the redundancy for every day and replace
+                for(int i = 1; i < parsedListCurrent.size(); i++){
+                    if(!parsedListCurrent.get(i).contains("Vertretungen sind nicht freigegeben") &&
+                            !parsedListCurrent.get(i).contains("Keine Vertretungen")){
+
+                        withoutRedun = eliminateRedundancy(parsedListCurrent.get(i));
+                        parsedListCurrent.remove(i);
+                        parsedListCurrent.add(i, withoutRedun);
+                    }
+                }
+
+                recyclerView = (RecyclerView) findViewById(R.id.recycler);
+                recyclerView.setItemViewCacheSize(30);
+                recyclerView.setDrawingCacheEnabled(true);
+                recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+                recyclerView.setHasFixedSize(true);
+                recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+
+                recyclerView.setAdapter(new RecyclerAdapter(parsedListCurrent, MainActivity.this, getApplicationContext()) {
+                });
 
                 //turn refresher off
                 swipeContainer.setRefreshing(false);
                 progressBar.setVisibility(View.GONE);
             }
         }).execute(url, user, pass); //start parser with following parameter
+    }
+
+    //in some cases there are redundant listings so they can be
+    //summarized in one card, the function checks if the case is the same
+    public String eliminateRedundancy(String checkString){
+
+        String info[] = checkString.split(" ~ ");
+        int counter = info.length;
+
+        if(counter < 2){
+            return checkString; // no redundancy -> return parameter
+        }
+        else{
+            String check1[], check2[], check3[], check4[];
+            String newHours1, newHours2;
+
+            if(counter == 2){
+                info[0] = info[0].trim();
+                info[1] = info[1].trim();
+                check1 = info[0].split(" ", 4);
+                check2 = info[1].split(" ", 4);
+
+                //they have same info
+                if(check1[3].equals(check2[3])){
+                    newHours1 = " " + check1[2] + " - " + check2[2] + " "; //important spaces because we delete the old in the replace process
+                    return info[0].replace(" " + check1[2] + " ", newHours1); //replace old String hours with new one
+                }
+                else{
+                    return checkString; //no redundancies -> return parameter
+                }
+            }
+            else if(counter == 3) {
+                info[0] = info[0].trim();
+                info[1] = info[1].trim();
+                info[2] = info[2].trim();
+                check1 = info[0].split(" ", 4);
+                check2 = info[1].split(" ", 4);
+                check3 = info[2].split(" ", 4);
+
+                //they have same info
+                if (check1[3].equals(check2[3])) {
+                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
+                    return info[0].replace(" " + check1[2] + " ", newHours1) + " ~ " + info[2];
+                } else if (check2[3].equals(check3[3])) {
+                    newHours1 = " " + check2[2] + " - " + check3[2] + " ";
+                    return info[0] + " ~ " + info[1].replace(" " + check2[2] + " ", newHours1);
+                } else if (check1[3].equals(check2[3]) && check2[3].equals(check3[3])) {
+                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
+                    return info[0].replace(" " + check1[2] + " ", newHours1); //replace old String hours with new one
+                } else {
+                    return checkString;
+                }
+            }
+            else if(counter == 4){
+                info[0] = info[0].trim();
+                info[1] = info[1].trim();
+                info[2] = info[2].trim();
+                info[3] = info[3].trim();
+                check1 = info[0].split(" ", 4);
+                check2 = info[1].split(" ", 4);
+                check3 = info[2].split(" ", 4);
+                check4 = info[3].split(" ", 4);
+
+                //they have same info
+                if (check1[3].equals(check2[3]) && check2[3].equals(check3[3])) {
+                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
+                    return info[0].replace(" " + check1[2] + " ", newHours1); //replace old String hours with new one
+                } else if(check1[3].equals(check2[3]) && check3[3].equals(check4[3])){
+                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
+                    newHours2 = " " + check3[2] + " - " + check4[2] + " ";
+                    return info[0].replace(" " + check1[2] + " ", newHours1) + " ~ " + info[2].replace(" " + check3[2] + " ", newHours2);
+                } else if (check1[3].equals(check2[3])) {
+                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
+                    return info[0].replace(" " + check1[2] + " ", newHours1) + " ~ " + info[2] + " ~ " + info[3];
+                } else if (check2[3].equals(check3[3])) {
+                    newHours1 = " " + check2[2] + " - " + check3[2] + " ";
+                    return info[0] + " ~ " + info[1].replace(" " + check2[2] + " ", newHours1) + " ~ " + info[3];
+                } else if (check3[3].equals(check4[3])) {
+                    newHours1 = " " + check3[2] + " - " + check4[2] + " ";
+                    return info[0] + " ~ " + info[1] +  " ~ " + info[2].replace(" " + check3[2] + " ", newHours1);
+                } else {
+                    return checkString;
+                }
+            }
+            return checkString;
+        }
     }
 
     @Override
@@ -437,11 +547,6 @@ public class MainActivity extends AppCompatActivity{
             startActivityForResult(settings, requestCode);
             return true;
         }
-        else if (id == R.id.action_login) {
-            Intent login = new Intent(getApplicationContext(), LoginActivity.class);
-            startActivity(login);
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -467,8 +572,9 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
+    //detail viewCards for substitution
     public void onCreateDetailView(String detail){
-        String detailArray[] = detail.split(",");
+        String detailArray[] = detail.split("~");
 
         Log.d("ESBLOG", "CLICK: " + detail);
 
@@ -482,31 +588,35 @@ public class MainActivity extends AppCompatActivity{
         TextView txtTeacher = (TextView)mView.findViewById(R.id.txtTeacherDetail);
         TextView txtRoom = (TextView)mView.findViewById(R.id.txtRoomDetail);
 
-        // Array explanation 0 -> head, 1 -> hours, 2 -> color, 3 and 4 -> Date, 5 -> Info, 6 -> Teacher, 7 -> Room
+        // Array explanation 0 -> head, 1 -> hours, 2 -> color, 3 -> Date, 4 -> Info, 5 -> Teacher, 6 -> Room
 
         //set handed details
         txtCase.setText(detailArray[0]);
         txtCase.setTextColor(Color.parseColor(detailArray[2]));
         txtHours.setText(detailArray[1]);
         txtHours.setTextColor(Color.parseColor(detailArray[2]));
-        txtDate.setText(detailArray[3] + "," + detailArray[4]); //two arrays because they are by default separated with a comma
-        txtInfo.setText(detailArray[5]);
-        txtTeacher.setText(detailArray[6]);
-        txtRoom.setText(detailArray[7]);
+        txtDate.setText(detailArray[3]);
+        txtInfo.setText(detailArray[4]);
+        txtTeacher.setText(detailArray[5]);
+        txtRoom.setText(detailArray[6]);
 
         txtClass.setText(classNameString);
 
-        if(detailArray[5].equals(" ")){
+        if(detailArray[0].equals("Nachricht des Tages")){
+            txtCase.setText("Wichtig");
+        }
+
+        if(detailArray[4].equals(" ")){
             mView.findViewById(R.id.imgDescription).setVisibility(View.GONE);
             mView.findViewById(R.id.txtViewDescription).setVisibility(View.GONE);
         }
 
-        if(detailArray[6].equals(" ")){
+        if(detailArray[5].equals(" ")){
             mView.findViewById(R.id.imgTeacher).setVisibility(View.GONE);
             mView.findViewById(R.id.txtViewTeacher).setVisibility(View.GONE);
         }
 
-        if(detailArray[7].equals(" ")){
+        if(detailArray[6].equals(" ")){
             mView.findViewById(R.id.imgRoom).setVisibility(View.GONE);
             mView.findViewById(R.id.txtViewRoom).setVisibility(View.GONE);
         }

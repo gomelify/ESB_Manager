@@ -12,4 +12,28 @@
         <item>3</item>
         <item>4</item>
     </string-array>
+
+    <array name="pickerColors">
+        <item>@color/standardRoomChange</item>
+        <item>@color/specialOrange</item>
+        <item>@color/specialDeepOrange</item>
+        <item>@color/specialRed</item>
+        <item>@color/standardCancel</item>
+        <item>@color/standardEvent</item>
+        <item>@color/specialPink</item>
+        <item>@color/specialPink2</item>
+        <item>@color/standardWithOther</item>
+        <item>@color/specialPurple2</item>
+        <item>@color/specialDeepPurple</item>
+        <item>@color/specialIndigo</item>
+        <item>@color/specialIndigo2</item>
+        <item>@color/standardSpecial</item>
+        <item>@color/specialBlue</item>
+        <item>@color/specialLightBlue</item>
+        <item>@color/specialCyan</item>
+        <item>@color/specialTeal</item>
+        <item>@color/specialLightGreen</item>
+        <item>@color/standardChange</item>
+    </array>
+
      </resources>

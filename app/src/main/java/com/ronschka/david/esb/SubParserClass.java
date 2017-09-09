@@ -22,7 +22,7 @@ public class SubParserClass extends AsyncTask<String, Void, String>{
 
     @Override
     protected String doInBackground(String... data) {
-        String url[] = data[0].split(" , "); //0 is sub, 1 is table
+        String url[] = data[0].split(" , "); //0 is sub current, 1 is sub next
         String user = data[1];
         String password = data[2];
 
@@ -36,15 +36,19 @@ public class SubParserClass extends AsyncTask<String, Void, String>{
                     .timeout(5000)
                     .get();
 
-            Document doc2 = Jsoup.connect(url[1])
-                    .header("Authorization", "Basic " + encoded)
-                    .timeout(5000)
-                    .get();
+            if(!url[1].equals(" ")){
+                Document doc2 = Jsoup.connect(url[1])
+                        .header("Authorization", "Basic " + encoded)
+                        .timeout(5000)
+                        .get();
 
-            String nextWeek = doc2.text();
-            nextWeek = nextWeek.replaceFirst("Montag","[ Montag ]");
-
-            parsedText = doc1.text() + " SPLIT " + nextWeek;
+                String nextWeek = doc2.text();
+                nextWeek = nextWeek.replaceFirst("Montag","[ Montag ]");
+                parsedText = doc1.text() + " SPLIT " + nextWeek;
+            }
+            else{
+                parsedText = doc1.text();
+            }
 
             //delete unnecessary parts
             parsedText = parsedText.replaceFirst("Montag","[ Montag ]");

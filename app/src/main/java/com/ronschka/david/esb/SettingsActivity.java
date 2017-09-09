@@ -19,6 +19,9 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //back arrow
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
         setPhpData();
 
         //Display the fragment as the main content
@@ -33,6 +36,12 @@ public class SettingsActivity extends AppCompatActivity {
         setResult(RESULT_OK, data);
         finish();
         return;
+    }
+    //back arrow
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 
     public void setPhpData(){
@@ -82,6 +91,9 @@ public class SettingsActivity extends AppCompatActivity {
 
                 String classList = phpArray[1].toString();
                 classArray = classList.split(",");
+
+                //ONLY FOR TEST
+                classArray[classArray.length - 1] = "TEST";
 
                 String roomList = phpArray[2].toString();
                 roomArray = roomList.split(",");

@@ -2,14 +2,25 @@
 
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <ListPreference
-        android:key="classList"
-        android:title="@string/class_preference_title"
-        android:entries="@array/listentries"
-        android:entryValues="@array/listvalues"
-        android:defaultValue="0" />
-    <CheckBoxPreference
-        android:key="syncCheck"
-        android:title="@string/sync_preference_title" />
+    <PreferenceCategory
+        android:title="@string/pref_substitution"
+        android:key="pref_key_storage_settings_substitution">
+        <ListPreference
+            android:key="classList"
+            android:title="@string/class_preference_title"
+            android:entries="@array/listentries"
+            android:entryValues="@array/listvalues"
+            android:defaultValue="0" />
+        <Preference
+            android:title="@string/color_picker_substitution">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:targetPackage="com.ronschka.david.esb"
+                android:targetClass="com.ronschka.david.esb.ColorListActivity"
+                />
+        </Preference>
+        <CheckBoxPreference
+            android:key="syncCheck"
+            android:title="@string/sync_preference_title" />
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:text="Klasse"
             android:textSize="17sp"
-            android:layout_above="@+id/txtClassDetail"
+            android:layout_alignTop="@+id/imgClass"
             android:layout_alignLeft="@+id/txtDateDetail"
             android:layout_alignStart="@+id/txtDateDetail" />
 
@@ -59,29 +59,29 @@
             android:layout_height="wrap_content"
             android:text="Beschreibung"
             android:textSize="17sp"
-            android:layout_above="@+id/txtInfoDetail"
-            android:layout_alignLeft="@+id/txtTeacherDetail"
-            android:layout_alignStart="@+id/txtTeacherDetail" />
+            android:layout_alignTop="@+id/imgDescription"
+            android:layout_alignLeft="@+id/txtDateDetail"
+            android:layout_alignStart="@+id/txtDateDetail" />
 
         <TextView
             android:id="@+id/txtViewTeacher"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/txtTeacherDetail"
-            android:layout_alignLeft="@+id/txtRoomDetail"
-            android:layout_alignStart="@+id/txtRoomDetail"
             android:text="Lehrer"
-            android:textSize="17sp" />
+            android:textSize="17sp"
+            android:layout_alignTop="@+id/imgTeacher"
+            android:layout_alignLeft="@+id/txtDateDetail"
+            android:layout_alignStart="@+id/txtDateDetail" />
 
         <TextView
             android:id="@+id/txtViewRoom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/txtRoomDetail"
-            android:layout_alignLeft="@+id/txtClassDetail"
-            android:layout_alignStart="@+id/txtClassDetail"
             android:text="Raum"
-            android:textSize="17sp" />
+            android:textSize="17sp"
+            android:layout_alignTop="@+id/imgRoom"
+            android:layout_alignLeft="@+id/txtDateDetail"
+            android:layout_alignStart="@+id/txtDateDetail" />
 
         <TextView
             android:id="@+id/txtDateDetail"
@@ -97,11 +97,11 @@
             android:id="@+id/txtClassDetail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/imgRoom"
-            android:layout_alignLeft="@+id/txtViewClass"
-            android:layout_alignStart="@+id/txtViewClass"
             android:text="GO12"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:layout_below="@+id/txtViewClass"
+            android:layout_alignLeft="@+id/txtViewClass"
+            android:layout_alignStart="@+id/txtViewClass" />
 
         <TextView
             android:id="@+id/txtInfoDetail"
@@ -109,7 +109,7 @@
             android:layout_height="wrap_content"
             android:text="Herr Beispiel ist erkältet!"
             android:textSize="15sp"
-            android:layout_alignBottom="@+id/imgDescription"
+            android:layout_below="@+id/txtViewDescription"
             android:layout_alignLeft="@+id/txtViewDescription"
             android:layout_alignStart="@+id/txtViewDescription" />
 
@@ -117,21 +117,21 @@
             android:id="@+id/txtTeacherDetail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/imgTeacher"
-            android:layout_alignLeft="@+id/txtViewTeacher"
-            android:layout_alignStart="@+id/txtViewTeacher"
             android:text="WIN"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:layout_below="@+id/txtViewTeacher"
+            android:layout_alignLeft="@+id/txtViewTeacher"
+            android:layout_alignStart="@+id/txtViewTeacher" />
 
         <TextView
             android:id="@+id/txtRoomDetail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/imgRoom"
-            android:layout_alignLeft="@+id/txtViewRoom"
-            android:layout_alignStart="@+id/txtViewRoom"
             android:text="E203"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:layout_below="@+id/txtViewRoom"
+            android:layout_alignLeft="@+id/txtViewRoom"
+            android:layout_alignStart="@+id/txtViewRoom" />
 
         <ImageView
             android:id="@+id/imgDate"
