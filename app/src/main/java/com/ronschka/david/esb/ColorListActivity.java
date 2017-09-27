@@ -69,7 +69,8 @@ public class ColorListActivity extends AppCompatActivity{
                 // Get the Item from ListView
                 View view = super.getView(position, convertView, parent);
 
-                ImageView img = (ImageView) view.findViewById(R.id.color_image);
+                ImageView img = view.findViewById(R.id.color_image);
+
 
                 // Set the text color of image (ListView Item)
                 switch(position){
@@ -242,17 +243,14 @@ public class ColorListActivity extends AppCompatActivity{
         }
 
         public int getCount() {
-            // TODO Auto-generated method stub
             return Title.length;
         }
 
         public Object getItem(int arg0) {
-            // TODO Auto-generated method stub
             return null;
         }
 
         public long getItemId(int position) {
-            // TODO Auto-generated method stub
             return position;
         }
 

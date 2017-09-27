@@ -20,20 +20,6 @@
             android:paddingRight="12dp">
 
             <TextView
-                android:id="@+id/textView_title"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/hw_title"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
-
-            <EditText
-                android:id="@+id/editText_homework"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:inputType="textCapSentences|textAutoCorrect" />
-
-            <TextView
                 android:id="@+id/textView_subject"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
@@ -51,7 +37,7 @@
                 android:id="@+id/textView_until"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/hw_until"
+                android:text="@string/ex_date"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
@@ -75,6 +61,20 @@
                 android:hint="@string/hw_info"
                 android:inputType="textMultiLine"
                 android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/textView_title"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/ex_note"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <EditText
+                android:id="@+id/editText_homework"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:inputType="textCapSentences|textAutoCorrect" />
 
             <CheckBox
                 android:id="@+id/checkBox_urgent"

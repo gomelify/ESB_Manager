@@ -44,7 +44,9 @@
         <activity
             android:name=".AddHomework"
             android:label="@string/add_homework" />
-
+        <activity
+            android:name=".AddExam"
+            android:label="@string/add_exam" />
         <activity
             android:name=".ColorListActivity"
             android:label="@string/colorListActivity" />

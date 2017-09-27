@@ -1,4 +1,4 @@
-package com.ronschka.david.esb;
+package com.ronschka.david.esb.helper;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -11,6 +11,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.ronschka.david.esb.MainActivity;
+import com.ronschka.david.esb.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +39,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         final SharedPreferences colors = PreferenceManager.getDefaultSharedPreferences(context);
 
         //colors for the different cases
-        cancelColor = colors.getString("color_cancel", context.getResources().getString(0+R.color.standardCancel));
+        cancelColor = colors.getString("color_cancel", context.getResources().getString(0+ R.color.standardCancel));
         withOtherColor = colors.getString("color_with_other", context.getResources().getString(0+R.color.standardWithOther));
         roomchangeColor = colors.getString("color_roomchange", context.getResources().getString(0+R.color.standardRoomChange));
         eventColor = colors.getString("color_event", context.getResources().getString(0+R.color.standardEvent));
@@ -71,8 +74,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                     currentViewType = 4;
                     return 4;
                 default:
-                    currentViewType = 0;
-                    return 0;
+                    currentViewType = -1;
+                    return -1;
             }
         }
         else{
@@ -85,6 +88,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         switch(viewType){
+            case -1:
+                //error
+                return new ViewHolder(LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.recycler_child_error, parent, false));
             case 0:
                 //null
                 return new ViewHolder(LayoutInflater.from(parent.getContext())
@@ -116,7 +123,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
         //                  !!! FILL THE CARDS WITH DATE-INFORMATION  !!!
         //null presets don't contain a day TextView
-        if (currentViewType > 0) {
+        if (currentViewType > 0 || currentViewType == -1) {
             switch (position + 1) {
                 case 1:
                     dateString = "Montag, " + date[position] + year;
@@ -166,7 +173,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         if (currentViewType > 1) {
 
             //save parsed data in specified strings
-            String strHours, strHead, strInfo, strColor, strBackColor; //needed for simple cardView
+            String strHours, strHead, strInfo, strColor; //needed for simple cardView
             String detailTeacher, detailInfo, detailRoom; //needed for detail cardView
 
             //default values
@@ -301,11 +308,22 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                     strColor = eventColor;
 
                     String newInfoString = infoString.replaceAll("   "," ");
-                    String splitter[] = newInfoString.split(" " , 5);
+                    String splitter[] = newInfoString.split(" ");
 
-                    strHours = splitter[2];
-                    detailInfo = splitter[4];
-                    strInfo = detailInfo;
+                    if(splitter.length == 7){
+                        strHours = splitter[2];
+                        detailTeacher = splitter[3];
+                        detailRoom = splitter[4];
+                        detailInfo = splitter[6];
+                        strInfo = detailInfo + " in " + detailRoom;
+                    }
+                    else if(splitter.length == 6){
+                        strHours = splitter[2];
+                        detailTeacher = splitter[3];
+                        detailRoom = splitter[4];
+                        detailInfo = splitter[5];
+                        strInfo = detailInfo + " in " + detailRoom;
+                    }
                 }
 
                 //Case: Nachrichten zum Tag

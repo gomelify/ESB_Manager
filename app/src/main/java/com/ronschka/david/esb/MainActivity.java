@@ -3,8 +3,10 @@ package com.ronschka.david.esb;
 import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -20,34 +22,55 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
+import com.ronschka.david.esb.databaseExams.SourceEx;
+import com.ronschka.david.esb.databaseHomework.SourceHw;
+import com.ronschka.david.esb.helper.Converter;
+import com.ronschka.david.esb.helper.CustomAdapter;
+import com.ronschka.david.esb.helper.Homework;
+import com.ronschka.david.esb.tabs.SubstitutionClass;
+
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity{
 
+    private static ArrayList<HashMap<String, String>> hwArray = new ArrayList<>();
+    private static ArrayList<HashMap<String, String>> exArray = new ArrayList<>();
+    private int previous = R.id.navigation_plan; //previous view
     private SwipeRefreshLayout swipeContainer;
-    private String classNameString;
-    private int previous = R.id.navigation_plan; //previous view check
+    private ProgressBar progressBar;
+    private RecyclerView recyclerView;
+    private ListView hwList;
+    private ListView exList;
+
+    //tabs
+    private SubstitutionClass substitutionClass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
-
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         boolean previouslyStarted = prefs.getBoolean(getString(R.string.pref_previously_started), false);
+
         if(!previouslyStarted) {
             //opens php class for string echo with class, teacher and room information
             PhpClass php = new PhpClass();
@@ -57,462 +80,164 @@ public class MainActivity extends AppCompatActivity{
             Intent login = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(login);
             finish();
-            Log.d("ESBLOG", "FIRST START!");
         }
         else{
-            //only test purpose
-            SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-            SharedPreferences.Editor edit = prefs2.edit();
-            edit.putBoolean(getString(R.string.pref_previously_started), Boolean.TRUE);
-            edit.commit();
-
-            //opens php class for string echo with class, teacher and room information
-            PhpClass php = new PhpClass();
-            php.setContext(getApplicationContext());
-            php.execute();
-
-            setContentView(R.layout.activity_main);
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
-
-            final ViewFlipper viewFlipper = (ViewFlipper)findViewById(R.id.viewFliper);
-            viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this,
-                    R.anim.fade_in));
-            viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this,
-                   R.anim.fade_out));
-            viewFlipper.setDisplayedChild(0);
-
-            //SwipeRefresher -> substitution
-            swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-            swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    //get ClassValue of ClassPreference
-                    SharedPreferences className = getSharedPreferences("className", 0);
-                    String classNameString = className.getString("class", "");
-
-                    parseSubstitution(classNameString);
-                }
-            });
-            // Configure the refreshing colors
-            swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
-
-            final ScrollView scrollView = (ScrollView)findViewById(R.id.scroller);
-
-            //fab -> homework
-            FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fabHomework);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(new Intent(getApplicationContext(), AddHomework.class));
-                }
-            });
-
-            //bottom navigation interface
-            BottomNavigationView bottomNavigationView = (BottomNavigationView)findViewById(R.id.navigation);
-            bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-
-                //switch views
-                @Override
-                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                    if (previous != item.getItemId()) {
-                        switch ((item.getItemId())) {
-                            case R.id.navigation_plan:
-                                previous = R.id.navigation_plan;
-                                viewFlipper.setDisplayedChild(0);
-                                break;
-                            case R.id.navigation_substitution:
-                                viewFlipper.setDisplayedChild(1);
-                                previous = R.id.navigation_substitution;
-                                break;
-                            case R.id.navigation_homework:
-                                viewFlipper.setDisplayedChild(2);
-                                previous = R.id.navigation_homework;
-                                break;
-                            case R.id.navigation_exam:
-                                viewFlipper.setDisplayedChild(3);
-                                previous = R.id.navigation_exam;
-                                break;
-                        }
-                    }
-                    else{
-                        switch (previous) {
-                            case R.id.navigation_plan:
-                                Log.d("ESBLOG", "TRIGGER!" + scrollView);
-
-                                break;
-                            case R.id.navigation_substitution:
-                                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler);
-                                recyclerView.smoothScrollToPosition(0);
-                                break;
-                            case R.id.navigation_homework:
-                                break;
-                            case R.id.navigation_exam:
-                                break;
-                        }
-                    }
-
-                    return true;
-                }
-            });
-
-            //get ClassValue of ClassPreference
-            SharedPreferences className = getSharedPreferences("className", 0);
-            classNameString = className.getString("class","");
-            parseSubstitution(classNameString);
+            setupEverything();
         }
     }
 
+    private void setupEverything(){
+        //TODO doesn't need to check every start
+        //opens php class for string echo with class, teacher and room information
+        PhpClass php = new PhpClass();
+        php.setContext(getApplicationContext());
+        php.execute();
 
-    public void parseSubstitution(String className){
-        final ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        setContentView(R.layout.activity_main);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        //get the current week
-        Calendar calender = Calendar.getInstance();
-        int currentWeek = calender.get(Calendar.WEEK_OF_YEAR);
+        //set viewFlipper's animations
+        final ViewFlipper viewFlipper = findViewById(R.id.viewFliper);
+        viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this,
+                R.anim.fade_in));
+        viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this,
+                R.anim.fade_out));
+        viewFlipper.setDisplayedChild(0);
 
+        //SwipeRefresher -> substitution
+        swipeContainer = findViewById(R.id.swipeContainer);
+        // Configure the refreshing colors
+        swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                createSubstitutionView();
+            }
+        });
+
+        progressBar = findViewById(R.id.progressBar);
+
+        //homework list
+        hwList = findViewById(R.id.listViewHomework);
+        exList = findViewById(R.id.listViewExams);
+
+        //RecyclerView -> substitution
+        recyclerView = findViewById(R.id.recycler);
+        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+
+        //initialize the tab classes
+        substitutionClass = new SubstitutionClass(getApplicationContext(), MainActivity.this, recyclerView);
+
+        final ScrollView scrollView = findViewById(R.id.scroller);
+
+        //bottom navigation interface
+        final BottomNavigationView bottomNavigationView = findViewById(R.id.navigation);
+
+        //Animation
+        final Animation fab_show = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_scale_up);
+        final Animation fab_hide = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_scale_down);
+        //fab -> homework
+        final FloatingActionButton fab = findViewById(R.id.fabButton);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(bottomNavigationView.getSelectedItemId() == R.id.navigation_homework){
+                    startActivity(new Intent(getApplicationContext(), AddHomework.class));
+                }
+                else{
+                    startActivity(new Intent(getApplicationContext(), AddExam.class));
+                }
+            }
+        });
+
+        //TODO ONLY FOR TEST PURPOSE!!
+        //bottomNavigationView.setVisibility(View.GONE);
+        //viewFlipper.setDisplayedChild(1);
+
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+            //switch views
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                if (previous != item.getItemId()) {
+                    switch ((item.getItemId())) {
+                        case R.id.navigation_plan:
+                            if(previous == R.id.navigation_homework || previous == R.id.navigation_exam){
+                                fab.startAnimation(fab_hide);
+                            }
+                            fab.setVisibility(View.GONE);
+                            previous = R.id.navigation_plan;
+                            viewFlipper.setDisplayedChild(0);
+                            break;
+                        case R.id.navigation_substitution:
+                            if(previous == R.id.navigation_homework || previous == R.id.navigation_exam){
+                                fab.startAnimation(fab_hide);
+                            }
+                            fab.setVisibility(View.GONE);
+                            viewFlipper.setDisplayedChild(1);
+                            previous = R.id.navigation_substitution;
+                            break;
+                        case R.id.navigation_homework:
+                            fab.setVisibility(View.VISIBLE);
+                            if(!(previous == R.id.navigation_exam)){
+                                fab.startAnimation(fab_show);
+                            }
+                            viewFlipper.setDisplayedChild(2);
+                            previous = R.id.navigation_homework;
+                            break;
+                        case R.id.navigation_exam:
+                            fab.setVisibility(View.VISIBLE);
+                            if(!(previous == R.id.navigation_homework)){
+                                fab.startAnimation(fab_show);
+                            }
+                            viewFlipper.setDisplayedChild(3);
+                            previous = R.id.navigation_exam;
+                            break;
+                    }
+                }
+                else{
+                    //scrolls up if selected navigation become touched again
+                    switch (previous) {
+                        case R.id.navigation_plan:
+                            Log.d("ESBLOG", "TRIGGER!" + scrollView);
+                            break;
+                        case R.id.navigation_substitution:
+                            recyclerView.smoothScrollToPosition(0);
+                            break;
+                        case R.id.navigation_homework:
+                            hwList.smoothScrollToPosition(0);
+                            break;
+                        case R.id.navigation_exam:
+                            break;
+                    }
+                }
+
+                return true;
+            }
+        });
+        createSubstitutionView();
+        updateExams();
+    }
+
+    private void createSubstitutionView(){
         if(!(swipeContainer.isRefreshing())){
             progressBar.setVisibility(View.VISIBLE);
         }
 
-        //create the PrefsFragment in SettingsActivity to get a
-        //PreferenceFragment and read the value of list
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-        String classNumber = pref.getString("classList","0");
-        String attach;
+        //saved className
+        SharedPreferences classNamePreference = getSharedPreferences("className", 0);
+        String className = classNamePreference.getString("class", "");
 
         //attach the class to toolbar
         if(!className.equals("")){
             getSupportActionBar().setTitle(getString(R.string.app_name) + " - " + className);
         }
 
-        String urlSubCurrent;
-        String urlSubNext = " ";
-
-        //TEST PURPOSE
-        if(className.equals("TEST")){
-            urlSubCurrent = "http://monkey-179.getforge.io/w/36/w00019.htm";
-            urlSubNext = "http://monkey-179.getforge.io/w/37/w00019.htm";
-        }
-        else {
-            //system expects format like '00', '01', .. '99' etc.
-            if (classNumber.length() < 2) {
-                attach = "0" + classNumber;
-            } else {
-                attach = classNumber;
-            }
-
-            //this URL with the class attachment will be parsed
-            urlSubCurrent = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + currentWeek + "/w000" + attach + ".htm";
-
-            Calendar calendar = Calendar.getInstance();
-            int day = calendar.get(Calendar.DAY_OF_WEEK);
-
-            //on the day after tuesday of the current week, there could be a plan for next week
-            if (day != Calendar.MONDAY && day != Calendar.TUESDAY) {
-                urlSubNext = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + (currentWeek + 1) + "/w000" + attach + ".htm";
-            }
-        }
-
-        //for this and next week
-        String url = urlSubCurrent + " , " + urlSubNext;
-
-        //get Userdata of LoginPreference
-        SharedPreferences login = getSharedPreferences("Login", 0);
-        String user = login.getString("Unm","");
-        String pass = login.getString("Psw","");
-
-        //receive the result fired from async class of onPostExecute(result) method
-        new SubParserClass(new SubParserClass.AsyncResponse() {
-            @Override
-            public void processFinish(String output) {
-                //Preference for substitution values
-                SharedPreferences parsedList = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                //checks if output was created
-                if(output != null) {
-                    SharedPreferences.Editor edit = parsedList.edit();
-                    edit.putString("parsedList", output);
-                    edit.commit();
-                }
-                String value = parsedList.getString("parsedList", "noValue");
-
-                String[] date = new String[10];
-
-                String[] splitOutput = value.split(" SPLIT ");
-                RecyclerView recyclerView;
-                ArrayList<String> parsedListCurrent = new ArrayList<>(
-                        Arrays.asList(splitOutput[0].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
-
-                //extend formatting
-                for (int i = 1; i < 7; i++) {
-                    String x = parsedListCurrent.get(i - 1);
-
-                    if (i == 1) {
-                        //date of the first day (day 0) (no information)
-                        x = x.replaceAll("Untis 2017  4  Eduard-Spranger-Berufskolleg Hamm  1", "");
-                        x = x.replaceFirst(" ", "");
-
-                        //date
-                        String[] y0 = x.split(" ");
-                        date[0] = (y0[y0.length - 1]).trim();
-                    } else if (i == 2) {
-                        //day 1 information
-                        x = x.replaceAll("\\|","");
-                        x = x.replaceAll("\\[","");
-                        x = x.replaceAll("]","");
-                        x = x.replaceFirst(" Dienstag ", "");
-                        x = x.replaceFirst(" Mittwoch ", "");
-                        x = x.replaceFirst(" Donnerstag ", "");
-                        x = x.replaceFirst(" Freitag ", "");
-                        x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-                        x = x.trim(); //trims space on begin and end
-
-                        if(!x.contains("Nachrichten zum Tag")){
-                            x = x.replaceFirst("~ ","");
-                        }
-
-                        parsedListCurrent.remove(i - 2);
-                        parsedListCurrent.add(i - 2, x);
-
-                        Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
-                    } else {
-                        //day 2 - 5 information
-                        x = x.replaceFirst(" ", "");
-                        x = x.replaceAll("\\|","");
-                        x = x.replaceAll("\\[","");
-                        x = x.replaceAll("]","");
-                        x = x.replaceFirst(" Dienstag ", "");
-                        x = x.replaceFirst(" Mittwoch ", "");
-                        x = x.replaceFirst(" Donnerstag ", "");
-                        x = x.replaceFirst(" Freitag ", "");
-                        x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-
-                        //date
-                        String[] split = x.split("\\.");
-                        date[i - 2] = (split[0] + "." + split[1] + ".").trim();
-
-                        //replace the date (only information is left)
-                        x = x.replaceFirst(date[i - 2], "");
-
-                        if(!x.contains("Nachrichten zum Tag")){
-                            x = x.replaceFirst("~ ","");
-                        }
-                        if(i == 6){ //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
-                            String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
-                            x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
-                            x = x.trim();
-                        }
-                        x = x.trim();
-                        parsedListCurrent.remove(i - 2);
-                        parsedListCurrent.add(i - 2, x);
-
-                        Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
-                    }
-                }//list 0 -> date | list 1 - 5 -> info
-
-                //cluster which isn't needed
-                parsedListCurrent.remove(5);
-
-                if(value.contains("SPLIT")) { //only next week, if split is available
-
-                    ArrayList<String> parsedListNext = new ArrayList<>(
-                            Arrays.asList(splitOutput[1].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
-
-                    //extend formatting
-                    for (int i = 1; i < 7; i++) {
-                        String x = parsedListNext.get(i - 1);
-
-                        if (i == 1) {
-                            //date of the first day (day 0) (no information)
-                            x = x.replaceAll("Untis 2017  4  Eduard-Spranger-Berufskolleg Hamm  1", "");
-                            x = x.replaceFirst(" ", "");
-
-                            //date
-                            String[] y0 = x.split(" ");
-                            date[5] = (y0[y0.length - 1]).trim();
-                        } else if (i == 2) {
-                            //day 1 information
-                            x = x.replaceAll("\\|", "");
-                            x = x.replaceAll("\\[", "");
-                            x = x.replaceAll("]", "");
-                            x = x.replaceFirst(" Dienstag ", "");
-                            x = x.replaceFirst(" Mittwoch ", "");
-                            x = x.replaceFirst(" Donnerstag ", "");
-                            x = x.replaceFirst(" Freitag ", "");
-                            x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-                            x = x.trim(); //trims space on begin and end
-
-                            if (!x.contains("Nachrichten zum Tag")) {
-                                x = x.replaceFirst("~ ", "");
-                            }
-
-                            parsedListNext.remove(i - 2);
-                            parsedListNext.add(i - 2, x);
-
-                            Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
-                        } else {
-                            //day 2 - 5 information
-                            x = x.replaceFirst(" ", "");
-                            x = x.replaceAll("\\|", "");
-                            x = x.replaceAll("\\[", "");
-                            x = x.replaceAll("]", "");
-                            x = x.replaceFirst(" Dienstag ", "");
-                            x = x.replaceFirst(" Mittwoch ", "");
-                            x = x.replaceFirst(" Donnerstag ", "");
-                            x = x.replaceFirst(" Freitag ", "");
-                            x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-
-                            //date
-                            String[] split = x.split("\\.");
-                            date[i + 3] = (split[0] + "." + split[1] + ".").trim();
-
-                            //replace the date (only information is left)
-                            x = x.replaceFirst(date[i + 3], "");
-
-                            if (!x.contains("Nachrichten zum Tag")) {
-                                x = x.replaceFirst("~ ", "");
-                            }
-                            if (i == 6) { //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
-                                String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
-                                x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
-                                x = x.trim();
-                            }
-                            x = x.trim();
-                            parsedListNext.remove(i - 2);
-                            parsedListNext.add(i - 2, x);
-
-                            Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
-                        }
-                    }//list 0 -> date | list 5 - 10 -> info
-
-                    //cluster which isn't needed
-                    parsedListNext.remove(5);
-
-                    //add all lines of the nextWeek - list into current list
-                    parsedListCurrent.addAll(parsedListNext);
-                }
-
-                //separate every date with a comma to save it as a string
-                StringBuilder dateBuilder = new StringBuilder();
-                for (String n : date) {
-                    dateBuilder.append(n + ",");
-                }
-                dateBuilder.deleteCharAt(dateBuilder.length() - 1);
-                parsedListCurrent.add(0, dateBuilder.toString());
-
-                String withoutRedun;
-                //check the redundancy for every day and replace
-                for(int i = 1; i < parsedListCurrent.size(); i++){
-                    if(!parsedListCurrent.get(i).contains("Vertretungen sind nicht freigegeben") &&
-                            !parsedListCurrent.get(i).contains("Keine Vertretungen")){
-
-                        withoutRedun = eliminateRedundancy(parsedListCurrent.get(i));
-                        parsedListCurrent.remove(i);
-                        parsedListCurrent.add(i, withoutRedun);
-                    }
-                }
-
-                recyclerView = (RecyclerView) findViewById(R.id.recycler);
-                recyclerView.setItemViewCacheSize(30);
-                recyclerView.setDrawingCacheEnabled(true);
-                recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-                recyclerView.setHasFixedSize(true);
-                recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-
-                recyclerView.setAdapter(new RecyclerAdapter(parsedListCurrent, MainActivity.this, getApplicationContext()) {
-                });
-
-                //turn refresher off
-                swipeContainer.setRefreshing(false);
-                progressBar.setVisibility(View.GONE);
-            }
-        }).execute(url, user, pass); //start parser with following parameter
-    }
-
-    //in some cases there are redundant listings so they can be
-    //summarized in one card, the function checks if the case is the same
-    public String eliminateRedundancy(String checkString){
-
-        String info[] = checkString.split(" ~ ");
-        int counter = info.length;
-
-        if(counter < 2){
-            return checkString; // no redundancy -> return parameter
-        }
-        else{
-            String check1[], check2[], check3[], check4[];
-            String newHours1, newHours2;
-
-            if(counter == 2){
-                info[0] = info[0].trim();
-                info[1] = info[1].trim();
-                check1 = info[0].split(" ", 4);
-                check2 = info[1].split(" ", 4);
-
-                //they have same info
-                if(check1[3].equals(check2[3])){
-                    newHours1 = " " + check1[2] + " - " + check2[2] + " "; //important spaces because we delete the old in the replace process
-                    return info[0].replace(" " + check1[2] + " ", newHours1); //replace old String hours with new one
-                }
-                else{
-                    return checkString; //no redundancies -> return parameter
-                }
-            }
-            else if(counter == 3) {
-                info[0] = info[0].trim();
-                info[1] = info[1].trim();
-                info[2] = info[2].trim();
-                check1 = info[0].split(" ", 4);
-                check2 = info[1].split(" ", 4);
-                check3 = info[2].split(" ", 4);
-
-                //they have same info
-                if (check1[3].equals(check2[3])) {
-                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
-                    return info[0].replace(" " + check1[2] + " ", newHours1) + " ~ " + info[2];
-                } else if (check2[3].equals(check3[3])) {
-                    newHours1 = " " + check2[2] + " - " + check3[2] + " ";
-                    return info[0] + " ~ " + info[1].replace(" " + check2[2] + " ", newHours1);
-                } else if (check1[3].equals(check2[3]) && check2[3].equals(check3[3])) {
-                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
-                    return info[0].replace(" " + check1[2] + " ", newHours1); //replace old String hours with new one
-                } else {
-                    return checkString;
-                }
-            }
-            else if(counter == 4){
-                info[0] = info[0].trim();
-                info[1] = info[1].trim();
-                info[2] = info[2].trim();
-                info[3] = info[3].trim();
-                check1 = info[0].split(" ", 4);
-                check2 = info[1].split(" ", 4);
-                check3 = info[2].split(" ", 4);
-                check4 = info[3].split(" ", 4);
-
-                //they have same info
-                if (check1[3].equals(check2[3]) && check2[3].equals(check3[3])) {
-                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
-                    return info[0].replace(" " + check1[2] + " ", newHours1); //replace old String hours with new one
-                } else if(check1[3].equals(check2[3]) && check3[3].equals(check4[3])){
-                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
-                    newHours2 = " " + check3[2] + " - " + check4[2] + " ";
-                    return info[0].replace(" " + check1[2] + " ", newHours1) + " ~ " + info[2].replace(" " + check3[2] + " ", newHours2);
-                } else if (check1[3].equals(check2[3])) {
-                    newHours1 = " " + check1[2] + " - " + check2[2] + " ";
-                    return info[0].replace(" " + check1[2] + " ", newHours1) + " ~ " + info[2] + " ~ " + info[3];
-                } else if (check2[3].equals(check3[3])) {
-                    newHours1 = " " + check2[2] + " - " + check3[2] + " ";
-                    return info[0] + " ~ " + info[1].replace(" " + check2[2] + " ", newHours1) + " ~ " + info[3];
-                } else if (check3[3].equals(check4[3])) {
-                    newHours1 = " " + check3[2] + " - " + check4[2] + " ";
-                    return info[0] + " ~ " + info[1] +  " ~ " + info[2].replace(" " + check3[2] + " ", newHours1);
-                } else {
-                    return checkString;
-                }
-            }
-            return checkString;
-        }
+        substitutionClass.parseSubstitution();
     }
 
     @Override
@@ -564,10 +289,10 @@ public class MainActivity extends AppCompatActivity{
                 edit.apply();
 
                 //Put new data in
-                edit.putString("class",returnedResult);
+                edit.putString("class", returnedResult);
                 edit.apply();
 
-                parseSubstitution(returnedResult);
+                createSubstitutionView();
             }
         }
     }
@@ -580,13 +305,13 @@ public class MainActivity extends AppCompatActivity{
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
         final View mView = getLayoutInflater().inflate(R.layout.activity_details, null);
-        TextView txtCase = (TextView) mView.findViewById(R.id.textViewCase);
-        TextView txtHours = (TextView) mView.findViewById(R.id.textViewHours);
-        TextView txtDate = (TextView) mView.findViewById(R.id.txtDateDetail);
-        TextView txtClass = (TextView) mView.findViewById(R.id.txtClassDetail);
-        TextView txtInfo = (TextView)mView.findViewById(R.id.txtInfoDetail);
-        TextView txtTeacher = (TextView)mView.findViewById(R.id.txtTeacherDetail);
-        TextView txtRoom = (TextView)mView.findViewById(R.id.txtRoomDetail);
+        TextView txtCase = mView.findViewById(R.id.textViewCase);
+        TextView txtHours = mView.findViewById(R.id.textViewHours);
+        TextView txtDate = mView.findViewById(R.id.txtDateDetail);
+        TextView txtClass = mView.findViewById(R.id.txtClassDetail);
+        TextView txtInfo = mView.findViewById(R.id.txtInfoDetail);
+        TextView txtTeacher = mView.findViewById(R.id.txtTeacherDetail);
+        TextView txtRoom = mView.findViewById(R.id.txtRoomDetail);
 
         // Array explanation 0 -> head, 1 -> hours, 2 -> color, 3 -> Date, 4 -> Info, 5 -> Teacher, 6 -> Room
 
@@ -600,25 +325,43 @@ public class MainActivity extends AppCompatActivity{
         txtTeacher.setText(detailArray[5]);
         txtRoom.setText(detailArray[6]);
 
+        //saved className
+        SharedPreferences classNamePreference = getSharedPreferences("className", 0);
+        String classNameString = classNamePreference.getString("class", "");
         txtClass.setText(classNameString);
 
         if(detailArray[0].equals("Nachricht des Tages")){
-            txtCase.setText("Wichtig");
+            txtCase.setText("Nachricht");
         }
 
         if(detailArray[4].equals(" ")){
             mView.findViewById(R.id.imgDescription).setVisibility(View.GONE);
             mView.findViewById(R.id.txtViewDescription).setVisibility(View.GONE);
+
+            if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+                RelativeLayout relative = mView.findViewById(R.id.relativeDescription);
+                relative.setVisibility(View.GONE);
+            }
         }
 
         if(detailArray[5].equals(" ")){
             mView.findViewById(R.id.imgTeacher).setVisibility(View.GONE);
             mView.findViewById(R.id.txtViewTeacher).setVisibility(View.GONE);
+
+            if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+                RelativeLayout relative = mView.findViewById(R.id.relativeTeacher);
+                relative.setVisibility(View.GONE);
+            }
         }
 
         if(detailArray[6].equals(" ")){
             mView.findViewById(R.id.imgRoom).setVisibility(View.GONE);
             mView.findViewById(R.id.txtViewRoom).setVisibility(View.GONE);
+
+            if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+                RelativeLayout relative = mView.findViewById(R.id.relativeRoom);
+                relative.setVisibility(View.GONE);
+            }
         }
         if(detailArray[1].length() > 4){
             txtHours.setTextSize(28);
@@ -643,11 +386,182 @@ public class MainActivity extends AppCompatActivity{
         });
     }
 
+    public void stopReloading() {
+        //turn refresher off
+        swipeContainer.setRefreshing(false);
+        progressBar.setVisibility(View.GONE);
+    }
+
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onScroll(MotionEvent event1, MotionEvent event2, float distanceX, float distanceY) {
             //Down-gesture
             return distanceX > -25 && distanceX < 25 && distanceY < -8;
         }
+    }
+
+    @Override
+    public final void onCreateContextMenu(final ContextMenu menu, final View v,
+                                          final ContextMenu.ContextMenuInfo menuInfo) {
+
+        super.onCreateContextMenu(menu, v, menuInfo);
+        Log.d("ESBLOG", "Test2: " + v.getId());
+        menu.add(0, v.getId(), 1, getString(R.string.dialog_edit));
+        menu.add(0, v.getId(), 2, getString(R.string.dialog_delete));
+    }
+
+    @Override
+    public final boolean onContextItemSelected(final MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        if (item.getTitle() == getString(R.string.dialog_edit)) {
+            if(item.getItemId() == R.id.listViewHomework){
+                editOne(hwArray, info.position, true); //true is homework type
+            }
+            else{
+                editOne(exArray, info.position, false);
+            }
+            return true;
+        }
+        if (item.getTitle() == getString(R.string.dialog_delete)) {
+            if(item.getItemId() == R.id.listViewHomework){
+                deleteOne(hwArray, info.position, true); //true is homework type
+            }
+            else{
+                deleteOne(exArray, info.position, false);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void editOne(final ArrayList<HashMap<String, String>> Array, final int pos, boolean type) {
+        final String currentID;
+        final Intent intent;
+        final Bundle mBundle;
+        if(type) {
+            currentID = "ID = " + Array.get(pos).get(SourceHw.allColumns[0]);
+            intent = new Intent(this, AddHomework.class);
+            mBundle = new Bundle();
+            mBundle.putString(SourceHw.allColumns[0], currentID);
+            for (int i = 1; i < SourceHw.allColumns.length; i++)
+                mBundle.putString(SourceHw.allColumns[i],
+                        Array.get(pos).get(SourceHw.allColumns[i]));
+        }
+        else{
+            currentID = "ID = " + Array.get(pos).get(SourceEx.allColumns[0]);
+            intent = new Intent(this, AddExam.class);
+            mBundle = new Bundle();
+            mBundle.putString(SourceEx.allColumns[0], currentID);
+            for (int i = 1; i < SourceEx.allColumns.length; i++)
+                mBundle.putString(SourceEx.allColumns[i],
+                        Array.get(pos).get(SourceEx.allColumns[i]));
+        }
+        intent.putExtras(mBundle);
+        startActivity(intent);
+    }
+
+    private void deleteOne(final ArrayList<HashMap<String, String>> ArHa, final int pos, boolean type) {
+        final ArrayList<HashMap<String, String>> tempArray = Converter.toTmpArray(ArHa, pos);
+
+        if(type) {
+            final String currentID = "ID = " + ArHa.get(pos).get(SourceHw.allColumns[0]);
+            final SimpleAdapter alertAdapter = CustomAdapter.entry(this, tempArray, true);
+
+            final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog
+                    .setTitle(R.string.delete_homework)
+                    .setAdapter(alertAdapter, null)
+                    .setPositiveButton((getString(android.R.string.yes)),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public final void onClick(final DialogInterface d, final int i) {
+                                    Homework.delete(getApplicationContext(), currentID);
+                                    updateHomework();
+                                }
+                            })
+                    .setNegativeButton((getString(android.R.string.no)), null)
+                    .show();
+        }
+        else{
+            final String currentID = "ID = " + ArHa.get(pos).get(SourceEx.allColumns[0]);
+            final SimpleAdapter alertAdapter = CustomAdapter.entry(this, tempArray, true);
+
+            final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog
+                    .setTitle(R.string.delete_exam)
+                    .setAdapter(alertAdapter, null)
+                    .setPositiveButton((getString(android.R.string.yes)),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public final void onClick(final DialogInterface d, final int i) {
+                                    Homework.delete(getApplicationContext(), currentID);
+                                    updateExams();
+                                }
+                            })
+                    .setNegativeButton((getString(android.R.string.no)), null)
+                    .show();
+        }
+    }
+
+    private void updateHomework() {
+        // Remove old content
+        hwArray.clear();
+        final SourceHw s = new SourceHw(this);
+
+        // Get content from SQLite Database
+        try {
+            s.open();
+            hwArray = s.get(this);
+            s.close();
+        } catch (Exception ex) {
+            Log.e("Update Homework List", ex.toString());
+        }
+
+        final ListAdapter hw = CustomAdapter.entry(this, hwArray, true); //true means homework
+        hwList.setAdapter(hw);
+        registerForContextMenu(hwList);
+    }
+
+    private void updateExams() {
+        // Remove old content
+        exArray.clear();
+        final SourceEx s = new SourceEx(this);
+
+        // Get content from SQLite Database
+        try {
+            s.open();
+            exArray = s.get(this);
+            s.close();
+        } catch (Exception ex) {
+            Log.e("Update Homework List", ex.toString());
+        }
+
+        final ListAdapter ex = CustomAdapter.entry(this, exArray, false); //false means exam
+        exList.setAdapter(ex);
+        registerForContextMenu(exList);
+    }
+
+    @Override
+    public final void onResume() {
+        super.onResume();
+        updateHomework();
+        updateExams();
+    }
+
+    private void deleteAll() {
+        final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog
+                .setTitle("Wirklich alles Löschen?")
+                .setMessage("Alles Löschen?")
+                .setPositiveButton((getString(android.R.string.yes)),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public final void onClick(final DialogInterface d, final int i) {
+                                Homework.delete(getApplicationContext(), null);
+                                updateHomework();
+                            }
+                        })
+                .setNegativeButton((getString(android.R.string.no)), null)
+                .show();
     }
 }

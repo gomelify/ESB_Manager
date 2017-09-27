@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">ESB Manager</string>
+    <string name="version_name">0.1</string>
     <string name="action_settings">Einstellungen</string>
     <string name="class_preference_title">Klassenauswahl</string>
     <string name="sync_preference_title">Synchronisieren</string>
@@ -57,4 +58,14 @@
     <string name="choose_color">Wähle eine Farbe</string>
     <string name="reset_colors">Farben zurücksetzen</string>
     <string name="sure_color_reset">Möchten Sie alle Farben zurücksetzen?</string>
+    <string name="dialog_edit">Bearbeiten</string>
+    <string name="dialog_delete">Löschen</string>
+    <string name="important">Wichtig</string>
+    <string name="please_enter_something">Dieses Feld muss ausgefüllt werden</string>
+    <string name="homework_save">Speichern</string>
+    <string name="delete_homework">Hausaufgabe löschen?</string>
+    <string name="delete_exam">Prüfung löschen?</string>
+    <string name="add_exam">Prüfung hinzufügen</string>
+    <string name="ex_date">Datum</string>
+    <string name="ex_note">Notiz</string>
 </resources>

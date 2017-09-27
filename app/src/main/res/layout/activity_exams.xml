@@ -16,10 +16,10 @@
         android:visibility="gone"/>
 
     <ListView
-        android:id="@+id/listViewHomework"
+        android:id="@+id/listViewExams"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="60dp"
-        android:clipToPadding="false"/>
+        android:clipToPadding="false"
+        android:paddingBottom="60dp" />
 
 </android.support.design.widget.CoordinatorLayout>

@@ -27,6 +27,7 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_marginBottom="50dp">
+        <!--deactivate if bottom isn't used-->
 
         <include
             android:id="@+id/include1"
@@ -39,8 +40,25 @@
             layout="@layout/activity_homework" />
         <include
             android:id="@+id/include4"
-            layout="@layout/activity_setup" />
+            layout="@layout/activity_exams" />
     </ViewFlipper>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="66dp"
+        android:layout_marginLeft="@dimen/fab_margin"
+        android:layout_marginRight="@dimen/fab_margin"
+        android:layout_marginTop="@dimen/fab_margin"
+        android:tint="@color/cardview_light_background"
+        android:visibility="gone"
+        app:layout_anchor="@+id/viewFliper"
+        app:layout_anchorGravity="bottom|right"
+        app:srcCompat="@drawable/ic_add_black_24dp"
+        app:rippleColor="@color/colorFAB"
+        android:clickable="true"/>
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -52,12 +70,12 @@
         app:layout_anchorGravity="center_vertical|center_horizontal" />
 
     <android.support.design.widget.BottomNavigationView
-        android:id="@+id/navigation"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_gravity="bottom"
-        android:background="@color/cardview_light_background"
-        app:elevation="10dp"
-        app:menu="@menu/navigation" />
+         android:id="@+id/navigation"
+         android:layout_width="match_parent"
+         android:layout_height="50dp"
+         android:layout_gravity="bottom"
+         android:background="@color/cardview_light_background"
+         app:elevation="10dp"
+         app:menu="@menu/navigation"/>
 
 </android.support.design.widget.CoordinatorLayout>

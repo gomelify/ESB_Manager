@@ -19,7 +19,7 @@ import android.widget.TextView;
 
 import com.ronschka.david.esb.databaseHomework.SourceHw;
 import com.ronschka.david.esb.helper.Converter;
-import com.ronschka.david.esb.helper.Homework;
+import com.ronschka.david.esb.helper.Exam;
 import com.ronschka.david.esb.helper.Subject;
 import com.ronschka.david.esb.helper.Utils;
 
@@ -28,7 +28,7 @@ import java.util.Calendar;
 
 import static com.ronschka.david.esb.helper.Converter.toMilliseconds;
 
-public final class AddHomework extends AppCompatActivity{
+public final class AddExam extends AppCompatActivity{
 
     /**
      * String array containing the subjects
@@ -53,7 +53,7 @@ public final class AddHomework extends AppCompatActivity{
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_homework_add);
+        setContentView(R.layout.activity_exam_add);
         //back arrow
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -251,13 +251,13 @@ public final class AddHomework extends AppCompatActivity{
         }
 
         // Entry in database
-        Homework.add(this, ID, homework, subject, time, info, urgent, "", color);
+        Exam.add(this, ID, homework, subject, time, info, urgent, "", color);
 
         // Auto-export
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean autoExport = prefs.getBoolean("pref_autoexport", false);
         if (autoExport)
-            Homework.exportIt(this, true);
+            Exam.exportIt(this, true);
 
         finish();
     }

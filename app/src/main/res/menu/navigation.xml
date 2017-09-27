@@ -20,5 +20,4 @@
         android:id="@+id/navigation_exam"
         android:icon="@drawable/ic_school_black_24dp"
         android:title="Prüfungen" />
-
 </menu>
