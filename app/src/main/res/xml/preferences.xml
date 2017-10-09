@@ -19,9 +19,6 @@
                 android:targetClass="com.ronschka.david.esb.ColorListActivity"
                 />
         </Preference>
-        <CheckBoxPreference
-            android:key="syncCheck"
-            android:title="@string/sync_preference_title" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/app_name"

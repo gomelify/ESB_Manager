@@ -23,7 +23,7 @@ public final class Exam {
      * @param ID ID of homework to get deleted. If set to null, all homework will get deleted.
      */
     public static void delete(final Context c, final String ID) {
-        final SourceHw s = new SourceHw(c);
+        final SourceEx s = new SourceEx(c);
         s.delete_item(ID);
     }
 

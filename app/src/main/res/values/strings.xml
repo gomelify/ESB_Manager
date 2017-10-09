@@ -41,7 +41,7 @@
     </string>
     <string name="error_no_Internet">Keine Internetverbindung</string>
     <string name="hw_subject">Fach</string>
-    <string name="hw_title">Titel</string>
+    <string name="hw_task">Aufgabe</string>
     <string name="hw_until">Bis</string>
     <string name="hw_info">Zusatzinformationen</string>
     <string name="hw_urgent">Wichtig</string>
@@ -68,4 +68,15 @@
     <string name="add_exam">Prüfung hinzufügen</string>
     <string name="ex_date">Datum</string>
     <string name="ex_note">Notiz</string>
+    <string name="no_exams">Keine Prüfungen</string>
+    <string name="no_homework">Keine Hausaufgaben</string>
+    <string name="ex_type">Prüfungsart</string>
+
+    <string-array name="exam_spinner_type">
+        <item>Klausur</item>
+        <item>Test</item>
+        <item>Referat</item>
+        <item>Hausarbeit</item>
+    </string-array>
+
 </resources>

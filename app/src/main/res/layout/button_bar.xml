@@ -17,7 +17,7 @@
         style="?android:attr/buttonBarButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="addHomework"
+        android:onClick="addData"
         android:text="Hinzufügen" />
 
 </LinearLayout>

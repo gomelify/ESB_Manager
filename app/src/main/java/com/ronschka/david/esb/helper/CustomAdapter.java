@@ -42,6 +42,16 @@ public final class CustomAdapter {
                     ImageView imageView = v.findViewById(R.id.colorRecHomework);
                     imageView.setBackgroundColor(Color.parseColor(a.get(position).get("COLOR")));
 
+                    ImageView imgStar = v.findViewById(R.id.imgImportant);
+
+                    if(a.get(position).get("URGENT").equals(c.getString(R.string.important))){
+                        imgStar.setVisibility(View.VISIBLE);
+                        imgStar.setColorFilter(Color.parseColor(c.getResources().getString(0+R.color.MaterialAmber)));
+                    }
+                    else{
+                        imgStar.setVisibility(View.GONE);
+                    }
+
                     return v;
                 }
             };

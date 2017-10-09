@@ -22,25 +22,26 @@
     </android.support.design.widget.AppBarLayout>
 
     <ViewFlipper
-        android:id="@+id/viewFliper"
+        android:id="@+id/viewFlipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
+        android:measureAllChildren="false"
         android:layout_marginBottom="50dp">
         <!--deactivate if bottom isn't used-->
 
         <include
             android:id="@+id/include1"
-            layout="@layout/activity_timetable" />
+            layout="@layout/tab_timetable" />
         <include
             android:id="@+id/include2"
-            layout="@layout/activity_substitution" />
+            layout="@layout/tab_substitution" />
         <include
             android:id="@+id/include3"
-            layout="@layout/activity_homework" />
+            layout="@layout/tab_homework" />
         <include
             android:id="@+id/include4"
-            layout="@layout/activity_exams" />
+            layout="@layout/tab_exams" />
     </ViewFlipper>
 
     <android.support.design.widget.FloatingActionButton
@@ -54,7 +55,7 @@
         android:layout_marginTop="@dimen/fab_margin"
         android:tint="@color/cardview_light_background"
         android:visibility="gone"
-        app:layout_anchor="@+id/viewFliper"
+        app:layout_anchor="@+id/viewFlipper"
         app:layout_anchorGravity="bottom|right"
         app:srcCompat="@drawable/ic_add_black_24dp"
         app:rippleColor="@color/colorFAB"

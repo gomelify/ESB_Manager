@@ -8,16 +8,16 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.ronschka.david.esb.databaseHomework.SourceHw;
+import com.ronschka.david.esb.databaseExams.SourceEx;
 import com.ronschka.david.esb.helper.Converter;
 import com.ronschka.david.esb.helper.Exam;
 import com.ronschka.david.esb.helper.Subject;
@@ -57,6 +57,9 @@ public final class AddExam extends AppCompatActivity{
         //back arrow
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        //prevent open keyboard automatically
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 
         subjects = Subject.get(this);
         date = getDate(0);
@@ -115,14 +118,14 @@ public final class AddExam extends AppCompatActivity{
         final Bundle extras = intent.getExtras();
         if (extras != null) {
             // Set ID
-            ID = extras.getString(SourceHw.allColumns[0]);
+            ID = extras.getString(SourceEx.allColumns[0]);
 
             // Set Title
             final EditText hwEdit = findViewById(R.id.editText_homework);
-            hwEdit.setText(extras.getString(SourceHw.allColumns[1]));
+            hwEdit.setText(extras.getString(SourceEx.allColumns[1]));
 
             // Set Subject
-            final String subject = extras.getString(SourceHw.allColumns[2]);
+            final String subject = extras.getString(SourceEx.allColumns[2]);
             final Spinner subSpin = findViewById(R.id.spinner_subject);
             ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_spinner_item, subjects);
@@ -146,23 +149,17 @@ public final class AddExam extends AppCompatActivity{
 
             // Set Info
             final EditText infoEdit = findViewById(R.id.editText_info);
-            infoEdit.setText(extras.getString(SourceHw.allColumns[3]));
-
-            // Set Urgent
-            if (!extras.getString(SourceHw.allColumns[4]).equals("")) {
-                final CheckBox checkBox = findViewById(R.id.checkBox_urgent);
-                checkBox.setChecked(true);
-            }
+            infoEdit.setText(extras.getString(SourceEx.allColumns[3]));
 
             // Set Until
-            time = Long.valueOf(extras.getString(SourceHw.allColumns[5])).longValue();
+            time = Long.valueOf(extras.getString(SourceEx.allColumns[5])).longValue();
             date = getDate(time);
             setUntilTV(date);
 
             // Change the "Add" button to "Save"
             final Button mAdd = findViewById(R.id.button_add);
             mAdd.setText(R.string.homework_save);
-            setTitle("Hausaufgabe bearbeiten");
+            setTitle("Prüfung bearbeiten");
         }
     }
 
@@ -185,7 +182,7 @@ public final class AddExam extends AppCompatActivity{
         dpd.show();
     }
 
-    public final void addHomework(final View v) {
+    public final void addData(final View v) {
         final Spinner subSpin = findViewById(R.id.spinner_subject);
         final EditText hwEdit = findViewById(R.id.editText_homework);
         final EditText infoEdit = findViewById(R.id.editText_info);
@@ -194,19 +191,10 @@ public final class AddExam extends AppCompatActivity{
         final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(hwEdit.getWindowToken(), 0);
 
-        // If nothing filled in -> cancel
-        if (hwEdit.getText().toString().trim().length() == 0) {
-            hwEdit.setError(getString(R.string.please_enter_something));
-            return;
-        }
-
-        // Urgent?
+        // Type
         String urgent;
-        final CheckBox urgentCheck = findViewById(R.id.checkBox_urgent);
-        if (urgentCheck.isChecked())
-            urgent = getString(R.string.important);
-        else
-            urgent = "";
+        final Spinner type = findViewById(R.id.spinner_type);
+        urgent = type.getSelectedItem().toString();
 
         // Get filled in data
         final String subject = subSpin.getSelectedItem().toString();

@@ -51,7 +51,7 @@ public final class Converter {
         gc.setTimeInMillis(time);
 
         // Format to Week of Day, for example Mo. or local version of that
-        final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE",
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE",
                 Locale.getDefault());
 
         // Tab space because else the date is too far to the left

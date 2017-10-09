@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -50,7 +51,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="cOut"
-                android:textSize="4sp" />
+                android:textSize="4sp"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/textView_urgent"
@@ -62,7 +64,15 @@
                 android:gravity="end"
                 android:maxLines="1"
                 android:textSize="13sp"
+                android:visibility="gone"
                 tools:text="Urgent" />
+
+            <ImageView
+                android:id="@+id/imgImportant"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="bottom"
+                app:srcCompat="@drawable/ic_star_black_24dp" />
 
         </LinearLayout>
 

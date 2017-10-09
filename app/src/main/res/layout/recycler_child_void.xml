@@ -6,7 +6,7 @@
     android:layout_marginRight="8dp"
     android:layout_marginTop="5dp"
     android:layout_marginBottom="5dp"
-    android:foreground="?android:attr/selectableItemBackground"
+    android:foreground="?attr/selectableItemBackground"
     android:clickable="true">
 
     <LinearLayout
@@ -34,12 +34,11 @@
             android:layout_weight="1"
             android:background="?attr/colorControlHighlight" />
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/relativDefault"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp">
-
 
             <TextView
                 android:id="@+id/txtInfoDetail"
@@ -53,7 +52,7 @@
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 android:textStyle="italic" />
-        </RelativeLayout>
+        </LinearLayout>
 
     </LinearLayout>
 

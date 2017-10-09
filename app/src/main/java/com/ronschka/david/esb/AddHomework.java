@@ -120,6 +120,7 @@ public final class AddHomework extends AppCompatActivity{
             // Set Title
             final EditText hwEdit = findViewById(R.id.editText_homework);
             hwEdit.setText(extras.getString(SourceHw.allColumns[1]));
+            hwEdit.setSelection(hwEdit.getText().length()); //Cursor position on end of text
 
             // Set Subject
             final String subject = extras.getString(SourceHw.allColumns[2]);
@@ -185,7 +186,7 @@ public final class AddHomework extends AppCompatActivity{
         dpd.show();
     }
 
-    public final void addHomework(final View v) {
+    public final void addData(final View v) {
         final Spinner subSpin = findViewById(R.id.spinner_subject);
         final EditText hwEdit = findViewById(R.id.editText_homework);
         final EditText infoEdit = findViewById(R.id.editText_info);

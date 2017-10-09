@@ -9,7 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.ronschka.david.esb.MainActivity;
@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
-public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder>{
+public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapter.SubstitutionRecyclerViewHolders>{
     ArrayList<String> array;
     MainActivity mainActivity;
     String cancelColor, withOtherColor, roomchangeColor, eventColor, changeColor, specialColor;
@@ -31,7 +31,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     int currentViewType = 0;
     int year = Calendar.getInstance().get(Calendar.YEAR);
 
-    public RecyclerAdapter(ArrayList<String> array, MainActivity mainAct, Context context) {
+    public SubstitutionAdapter(ArrayList<String> array, MainActivity mainAct, Context context) {
         this.context = context;
         this.mainActivity = mainAct;
         this.array = array;
@@ -56,7 +56,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             currentViewType = 0;
             return 0; //show nothing
         }
-        else if(array.get(position + 1).contains("Keine Vertretungen")) {
+        else if(array.get(position + 1).contains("Keine Vertretungen") && !array.get(position + 1).contains("Nachrichten zum Tag")) {
             currentViewType = 1;
             return 1; //show void card
         }
@@ -86,38 +86,39 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public SubstitutionRecyclerViewHolders onCreateViewHolder(ViewGroup parent, int viewType) {
         switch(viewType){
             case -1:
                 //error
-                return new ViewHolder(LayoutInflater.from(parent.getContext())
+                return new SubstitutionRecyclerViewHolders(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recycler_child_error, parent, false));
             case 0:
                 //null
-                return new ViewHolder(LayoutInflater.from(parent.getContext())
+                return new SubstitutionRecyclerViewHolders(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recycler_child_null, parent, false));
             case 1:
                 //void
-                return new ViewHolder(LayoutInflater.from(parent.getContext())
+                return new SubstitutionRecyclerViewHolders(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recycler_child_void, parent, false));
             case 2:
                 //filled 1
-                return new ViewHolder(LayoutInflater.from(parent.getContext())
+                return new SubstitutionRecyclerViewHolders(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recycler_child_filled, parent, false));
             case 3:
                 //extended 2
-                return new ViewHolder(LayoutInflater.from(parent.getContext())
+                return new SubstitutionRecyclerViewHolders(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recycler_child_x1, parent, false));
             case 4:
                 //extended 3
-                return new ViewHolder(LayoutInflater.from(parent.getContext())
+                return new SubstitutionRecyclerViewHolders(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recycler_child_x2, parent, false));
         }
         return null;
     }
 
+    //TODO short BindViewHolder and create Object: Substitution
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(SubstitutionRecyclerViewHolders holder, int position) {
         int infoQuantity = 1; //how many info cards
         String dateString = "";
 
@@ -494,33 +495,34 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         return array.size() - 1;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+
+    public class SubstitutionRecyclerViewHolders extends RecyclerView.ViewHolder{
 
         TextView day, info1, head1, hour1,
                 info2, head2, hour2,
                 info3, head3, hour3;
 
-        RelativeLayout card1, card2, card3;
+        LinearLayout card1, card2, card3;
 
-        public ViewHolder(View itemView){
+        public SubstitutionRecyclerViewHolders(View itemView){
             super(itemView);
 
-            day = (TextView)itemView.findViewById(R.id.txtDay);
+            day = itemView.findViewById(R.id.txtDay);
 
-            card1 = (RelativeLayout)itemView.findViewById(R.id.relativDefault);
-            hour1 = (TextView)itemView.findViewById(R.id.txtHour);
-            head1 = (TextView)itemView.findViewById(R.id.txtHead);
-            info1 = (TextView)itemView.findViewById(R.id.txtInfoDetail);
+            card1 = itemView.findViewById(R.id.linearDefault);
+            hour1 = itemView.findViewById(R.id.txtHour);
+            head1 = itemView.findViewById(R.id.txtHead);
+            info1 = itemView.findViewById(R.id.txtInfoDetail);
 
-            card2 = (RelativeLayout)itemView.findViewById(R.id.relativDefault2);
-            hour2 = (TextView)itemView.findViewById(R.id.txtHour2);
-            head2 = (TextView)itemView.findViewById(R.id.txtHead2);
-            info2 = (TextView)itemView.findViewById(R.id.txtInfo2);
+            card2 = itemView.findViewById(R.id.linearDefault2);
+            hour2 = itemView.findViewById(R.id.txtHour2);
+            head2 = itemView.findViewById(R.id.txtHead2);
+            info2 = itemView.findViewById(R.id.txtInfoDetail2);
 
-            card3 = (RelativeLayout)itemView.findViewById(R.id.relativDefault3);
-            hour3 = (TextView)itemView.findViewById(R.id.txtHour3);
-            head3 = (TextView)itemView.findViewById(R.id.txtHead3);
-            info3 = (TextView)itemView.findViewById(R.id.txtInfo3);
+            card3 = itemView.findViewById(R.id.linearDefault3);
+            hour3 = itemView.findViewById(R.id.txtHour3);
+            head3 = itemView.findViewById(R.id.txtHead3);
+            info3 = itemView.findViewById(R.id.txtInfoDetail3);
         }
     }
 }

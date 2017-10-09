@@ -12,7 +12,7 @@ import android.view.animation.LayoutAnimationController;
 
 import com.ronschka.david.esb.MainActivity;
 import com.ronschka.david.esb.R;
-import com.ronschka.david.esb.helper.RecyclerAdapter;
+import com.ronschka.david.esb.helper.SubstitutionAdapter;
 import com.ronschka.david.esb.helper.SubParserClass;
 
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class SubstitutionClass{
 
         if(!value.equals("noValue") && substitutionRefresh) {
             substitutionRefresh = false;
-            recyclerView.setAdapter(new RecyclerAdapter(clearString(value), mainAct, context));
+            recyclerView.setAdapter(new SubstitutionAdapter(clearString(value), mainAct, context));
         }
 
         //get the current week
@@ -114,7 +114,7 @@ public class SubstitutionClass{
                     recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
                     recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-                    recyclerView.setAdapter(new RecyclerAdapter(newList, mainAct, context) {
+                    recyclerView.setAdapter(new SubstitutionAdapter(newList, mainAct, context) {
                     });
 
                     runLayoutAnimation(recyclerView);

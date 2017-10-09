@@ -20,9 +20,10 @@
             android:paddingRight="12dp">
 
             <TextView
-                android:id="@+id/textView_subject"
-                android:layout_width="fill_parent"
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
                 android:text="@string/hw_subject"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -30,13 +31,28 @@
                 android:id="@+id/spinner_subject"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
                 android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/textView_subject"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:text="@string/ex_type"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <Spinner
+                android:id="@+id/spinner_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:entries="@array/exam_spinner_type"/>
 
             <TextView
                 android:id="@+id/textView_until"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
                 android:text="@string/ex_date"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -45,8 +61,7 @@
                 style="?android:attr/spinnerStyle"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="8dp"
                 android:onClick="setUntil"
                 android:paddingLeft="12dp"
                 android:paddingRight="12dp"
@@ -76,11 +91,6 @@
                 android:layout_marginBottom="8dp"
                 android:inputType="textCapSentences|textAutoCorrect" />
 
-            <CheckBox
-                android:id="@+id/checkBox_urgent"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/hw_urgent" />
         </LinearLayout>
     </ScrollView>
 

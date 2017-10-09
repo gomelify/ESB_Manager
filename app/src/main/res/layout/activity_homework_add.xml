@@ -23,7 +23,7 @@
                 android:id="@+id/textView_title"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/hw_title"
+                android:text="@string/hw_task"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
@@ -37,6 +37,7 @@
                 android:id="@+id/textView_subject"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
                 android:text="@string/hw_subject"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -44,13 +45,13 @@
                 android:id="@+id/spinner_subject"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
                 android:layout_marginBottom="8dp" />
 
             <TextView
                 android:id="@+id/textView_until"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
                 android:text="@string/hw_until"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -59,7 +60,6 @@
                 style="?android:attr/spinnerStyle"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
                 android:layout_marginBottom="12dp"
                 android:onClick="setUntil"
                 android:paddingLeft="12dp"

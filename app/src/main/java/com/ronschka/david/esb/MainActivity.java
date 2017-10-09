@@ -21,7 +21,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -35,7 +37,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
@@ -44,8 +45,10 @@ import com.ronschka.david.esb.databaseExams.SourceEx;
 import com.ronschka.david.esb.databaseHomework.SourceHw;
 import com.ronschka.david.esb.helper.Converter;
 import com.ronschka.david.esb.helper.CustomAdapter;
+import com.ronschka.david.esb.helper.Exam;
 import com.ronschka.david.esb.helper.Homework;
 import com.ronschka.david.esb.tabs.SubstitutionClass;
+import com.ronschka.david.esb.tabs.TimetableClass;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,15 +57,19 @@ public class MainActivity extends AppCompatActivity{
 
     private static ArrayList<HashMap<String, String>> hwArray = new ArrayList<>();
     private static ArrayList<HashMap<String, String>> exArray = new ArrayList<>();
-    private int previous = R.id.navigation_plan; //previous view
-    private SwipeRefreshLayout swipeContainer;
+    private int previousChild; //previousChild view
+    private SwipeRefreshLayout swipeContainerSub, swipeContainerTime;
     private ProgressBar progressBar;
-    private RecyclerView recyclerView;
+    private ViewFlipper viewFlipper;
+    private FloatingActionButton fab;
+    private BottomNavigationView bottomNavigationView;
+    private RecyclerView substitutionRecycler, timetableRecycler;
     private ListView hwList;
     private ListView exList;
 
     //tabs
     private SubstitutionClass substitutionClass;
+    private TimetableClass timetableClass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +89,32 @@ public class MainActivity extends AppCompatActivity{
             finish();
         }
         else{
+            setContentView(R.layout.activity_main);
+            //view changer
+            viewFlipper = findViewById(R.id.viewFlipper);
+
+            //bottom navigation interface
+            bottomNavigationView = findViewById(R.id.navigation);
+
+            //fab -> homework and exam
+            fab = findViewById(R.id.fabButton);
+
+            if (savedInstanceState != null) {
+                int flipperPosition = savedInstanceState.getInt("TAB_NUMBER");
+                int navigationPosition = savedInstanceState.getInt("NAVIGATION_NUMBER");
+                viewFlipper.setDisplayedChild(flipperPosition);
+                bottomNavigationView.setSelectedItemId(navigationPosition);
+                previousChild = savedInstanceState.getInt("TAB_NUMBER");
+
+                if(navigationPosition == R.id.navigation_homework || navigationPosition == R.id.navigation_exam){
+                    fab.setVisibility(View.VISIBLE);
+                }
+            }
+            else{
+                //start is always navigation_plan
+                previousChild = R.id.navigation_plan;
+            }
+
             setupEverything();
         }
     }
@@ -93,26 +126,32 @@ public class MainActivity extends AppCompatActivity{
         php.setContext(getApplicationContext());
         php.execute();
 
-        setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         //set viewFlipper's animations
-        final ViewFlipper viewFlipper = findViewById(R.id.viewFliper);
         viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this,
-                R.anim.fade_in));
-        viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this,
-                R.anim.fade_out));
-        viewFlipper.setDisplayedChild(0);
+                R.anim.view_flipper));
 
         //SwipeRefresher -> substitution
-        swipeContainer = findViewById(R.id.swipeContainer);
+        swipeContainerSub = findViewById(R.id.swipeContainerSub);
         // Configure the refreshing colors
-        swipeContainer.setColorSchemeResources(R.color.colorTextAccent);
-        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        swipeContainerSub.setColorSchemeResources(R.color.colorTextAccent);
+        swipeContainerSub.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 createSubstitutionView();
+            }
+        });
+
+        //SwipeRefresher -> timetable
+        swipeContainerTime = findViewById(R.id.swipeContainerTime);
+        //Configure the refreshing colors
+        swipeContainerTime.setColorSchemeResources(R.color.colorTextAccent);
+        swipeContainerTime.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                createTimetableView();
             }
         });
 
@@ -123,25 +162,33 @@ public class MainActivity extends AppCompatActivity{
         exList = findViewById(R.id.listViewExams);
 
         //RecyclerView -> substitution
-        recyclerView = findViewById(R.id.recycler);
-        recyclerView.setItemViewCacheSize(30);
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        substitutionRecycler = findViewById(R.id.substitutionRecycler);
+        substitutionRecycler.setItemViewCacheSize(30);
+        substitutionRecycler.setDrawingCacheEnabled(true);
+        substitutionRecycler.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        substitutionRecycler.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+
+        //RecyclerView -> timetable
+        timetableRecycler = findViewById(R.id.timetableRecycler);
+
+        //spacing between the cardViews in timetable in dp
+        final int spacingDP = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                2, getResources().getDisplayMetrics());
+
+        //needed for timetable (proportions)
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int width = displayMetrics.widthPixels;
+        int cardWidth = (width - 10*spacingDP)/5; //cardWidth in timetableClass
 
         //initialize the tab classes
-        substitutionClass = new SubstitutionClass(getApplicationContext(), MainActivity.this, recyclerView);
-
-        final ScrollView scrollView = findViewById(R.id.scroller);
-
-        //bottom navigation interface
-        final BottomNavigationView bottomNavigationView = findViewById(R.id.navigation);
+        substitutionClass = new SubstitutionClass(getApplicationContext(), MainActivity.this, substitutionRecycler);
+        timetableClass = new TimetableClass(getApplicationContext(), timetableRecycler, spacingDP, cardWidth);
 
         //Animation
         final Animation fab_show = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_scale_up);
         final Animation fab_hide = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_scale_down);
-        //fab -> homework
-        final FloatingActionButton fab = findViewById(R.id.fabButton);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -154,59 +201,54 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
-        //TODO ONLY FOR TEST PURPOSE!!
-        //bottomNavigationView.setVisibility(View.GONE);
-        //viewFlipper.setDisplayedChild(1);
-
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
 
             //switch views
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if (previous != item.getItemId()) {
+                if (previousChild != item.getItemId()) {
                     switch ((item.getItemId())) {
                         case R.id.navigation_plan:
-                            if(previous == R.id.navigation_homework || previous == R.id.navigation_exam){
+                            if(previousChild == R.id.navigation_homework || previousChild == R.id.navigation_exam){
                                 fab.startAnimation(fab_hide);
                             }
                             fab.setVisibility(View.GONE);
-                            previous = R.id.navigation_plan;
+                            previousChild = R.id.navigation_plan;
                             viewFlipper.setDisplayedChild(0);
                             break;
                         case R.id.navigation_substitution:
-                            if(previous == R.id.navigation_homework || previous == R.id.navigation_exam){
+                            if(previousChild == R.id.navigation_homework || previousChild == R.id.navigation_exam){
                                 fab.startAnimation(fab_hide);
                             }
                             fab.setVisibility(View.GONE);
                             viewFlipper.setDisplayedChild(1);
-                            previous = R.id.navigation_substitution;
+                            previousChild = R.id.navigation_substitution;
                             break;
                         case R.id.navigation_homework:
                             fab.setVisibility(View.VISIBLE);
-                            if(!(previous == R.id.navigation_exam)){
+                            if(!(previousChild == R.id.navigation_exam)){
                                 fab.startAnimation(fab_show);
                             }
                             viewFlipper.setDisplayedChild(2);
-                            previous = R.id.navigation_homework;
+                            previousChild = R.id.navigation_homework;
                             break;
                         case R.id.navigation_exam:
                             fab.setVisibility(View.VISIBLE);
-                            if(!(previous == R.id.navigation_homework)){
+                            if(!(previousChild == R.id.navigation_homework)){
                                 fab.startAnimation(fab_show);
                             }
                             viewFlipper.setDisplayedChild(3);
-                            previous = R.id.navigation_exam;
+                            previousChild = R.id.navigation_exam;
                             break;
                     }
                 }
                 else{
                     //scrolls up if selected navigation become touched again
-                    switch (previous) {
+                    switch (previousChild) {
                         case R.id.navigation_plan:
-                            Log.d("ESBLOG", "TRIGGER!" + scrollView);
                             break;
                         case R.id.navigation_substitution:
-                            recyclerView.smoothScrollToPosition(0);
+                            substitutionRecycler.smoothScrollToPosition(0);
                             break;
                         case R.id.navigation_homework:
                             hwList.smoothScrollToPosition(0);
@@ -215,16 +257,24 @@ public class MainActivity extends AppCompatActivity{
                             break;
                     }
                 }
-
                 return true;
             }
         });
+
         createSubstitutionView();
         updateExams();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        int position = viewFlipper.getDisplayedChild();
+        int navigation = bottomNavigationView.getSelectedItemId();
+        savedInstanceState.putInt("TAB_NUMBER", position);
+        savedInstanceState.putInt("NAVIGATION_NUMBER", navigation);
+    }
+
     private void createSubstitutionView(){
-        if(!(swipeContainer.isRefreshing())){
+        if(!(swipeContainerSub.isRefreshing())){
             progressBar.setVisibility(View.VISIBLE);
         }
 
@@ -238,6 +288,19 @@ public class MainActivity extends AppCompatActivity{
         }
 
         substitutionClass.parseSubstitution();
+    }
+
+    private void createTimetableView(){
+        final int spacingDP = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                2, getResources().getDisplayMetrics());
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int width = displayMetrics.widthPixels;
+        int cardWidth = (width - 10*spacingDP)/5; //cardWidth in timetableClass
+
+        timetableClass.rebuild(cardWidth);
+        swipeContainerTime.setRefreshing(false);
     }
 
     @Override
@@ -388,7 +451,7 @@ public class MainActivity extends AppCompatActivity{
 
     public void stopReloading() {
         //turn refresher off
-        swipeContainer.setRefreshing(false);
+        swipeContainerSub.setRefreshing(false);
         progressBar.setVisibility(View.GONE);
     }
 
@@ -405,7 +468,6 @@ public class MainActivity extends AppCompatActivity{
                                           final ContextMenu.ContextMenuInfo menuInfo) {
 
         super.onCreateContextMenu(menu, v, menuInfo);
-        Log.d("ESBLOG", "Test2: " + v.getId());
         menu.add(0, v.getId(), 1, getString(R.string.dialog_edit));
         menu.add(0, v.getId(), 2, getString(R.string.dialog_delete));
     }
@@ -435,11 +497,10 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void editOne(final ArrayList<HashMap<String, String>> Array, final int pos, boolean type) {
-        final String currentID;
         final Intent intent;
         final Bundle mBundle;
         if(type) {
-            currentID = "ID = " + Array.get(pos).get(SourceHw.allColumns[0]);
+            final String currentID = "ID = " + Array.get(pos).get(SourceHw.allColumns[0]);
             intent = new Intent(this, AddHomework.class);
             mBundle = new Bundle();
             mBundle.putString(SourceHw.allColumns[0], currentID);
@@ -448,7 +509,7 @@ public class MainActivity extends AppCompatActivity{
                         Array.get(pos).get(SourceHw.allColumns[i]));
         }
         else{
-            currentID = "ID = " + Array.get(pos).get(SourceEx.allColumns[0]);
+            final String currentID = "ID = " + Array.get(pos).get(SourceEx.allColumns[0]);
             intent = new Intent(this, AddExam.class);
             mBundle = new Bundle();
             mBundle.putString(SourceEx.allColumns[0], currentID);
@@ -484,7 +545,7 @@ public class MainActivity extends AppCompatActivity{
         }
         else{
             final String currentID = "ID = " + ArHa.get(pos).get(SourceEx.allColumns[0]);
-            final SimpleAdapter alertAdapter = CustomAdapter.entry(this, tempArray, true);
+            final SimpleAdapter alertAdapter = CustomAdapter.entry(this, tempArray, false);
 
             final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
             alertDialog
@@ -494,7 +555,7 @@ public class MainActivity extends AppCompatActivity{
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public final void onClick(final DialogInterface d, final int i) {
-                                    Homework.delete(getApplicationContext(), currentID);
+                                    Exam.delete(getApplicationContext(), currentID);
                                     updateExams();
                                 }
                             })
@@ -520,6 +581,15 @@ public class MainActivity extends AppCompatActivity{
         final ListAdapter hw = CustomAdapter.entry(this, hwArray, true); //true means homework
         hwList.setAdapter(hw);
         registerForContextMenu(hwList);
+
+        TextView txt = findViewById(R.id.txtNoHomework);
+
+        if(hw.getCount() == 0){ //list is empty
+            txt.setVisibility(View.VISIBLE);
+        }
+        else{
+            txt.setVisibility(View.GONE);
+        }
     }
 
     private void updateExams() {
@@ -537,8 +607,18 @@ public class MainActivity extends AppCompatActivity{
         }
 
         final ListAdapter ex = CustomAdapter.entry(this, exArray, false); //false means exam
+        Log.d("ESBLOG", "Adapter: " + ex.getCount());
         exList.setAdapter(ex);
         registerForContextMenu(exList);
+
+        TextView txt = findViewById(R.id.txtNoExams);
+
+        if(ex.getCount() == 0){ //list is empty
+            txt.setVisibility(View.VISIBLE);
+        }
+        else{
+            txt.setVisibility(View.GONE);
+        }
     }
 
     @Override
