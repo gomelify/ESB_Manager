@@ -20,7 +20,7 @@ public final class HelperHw extends SQLiteOpenHelper {
     /**
      * The command when first creating the database.
      */
-    private static final String TABLE_CREATE_HOMEWORK = "create table HOMEWORK(ID integer primary key autoincrement,HOMEWORK text,SUBJECT text,TIME text,INFO text,URGENT text,COLOR text,COMPLETED text)";
+    private static final String TABLE_CREATE_HOMEWORK = "create table HOMEWORK(ID integer primary key autoincrement, HOMEWORK text, SUBJECT text, TIME text, INFO text, URGENT text, COLOR text, COMPLETED text)";
 
     public HelperHw(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

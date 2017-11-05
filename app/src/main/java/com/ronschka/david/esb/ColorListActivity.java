@@ -57,7 +57,7 @@ public class ColorListActivity extends AppCompatActivity{
                 R.drawable.ic_color_lens_black_24dp,
         };
 
-        ListView listView = (ListView)findViewById(R.id.color_listview);
+        ListView listView = findViewById(R.id.color_listview);
 
         final CustomAdapter arrayAdapter = new CustomAdapter(
                 this,
@@ -261,8 +261,8 @@ public class ColorListActivity extends AppCompatActivity{
             row = inflater.inflate(R.layout.list_item_color, parent, false);
             TextView title;
             ImageView i1;
-            i1 = (ImageView) row.findViewById(R.id.color_image);
-            title = (TextView) row.findViewById(R.id.color_text);
+            i1 = row.findViewById(R.id.color_image);
+            title = row.findViewById(R.id.color_text);
             title.setText(Title[position]);
             i1.setImageResource(img[position]);
 

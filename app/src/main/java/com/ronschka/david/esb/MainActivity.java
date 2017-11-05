@@ -17,6 +17,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -25,11 +26,10 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextMenu;
-import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
@@ -38,6 +38,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
@@ -47,6 +48,8 @@ import com.ronschka.david.esb.helper.Converter;
 import com.ronschka.david.esb.helper.CustomAdapter;
 import com.ronschka.david.esb.helper.Exam;
 import com.ronschka.david.esb.helper.Homework;
+import com.ronschka.david.esb.helper.OnSwipeTouchListener;
+import com.ronschka.david.esb.helper.SwipeDismissListViewTouchListener;
 import com.ronschka.david.esb.tabs.SubstitutionClass;
 import com.ronschka.david.esb.tabs.TimetableClass;
 
@@ -183,7 +186,7 @@ public class MainActivity extends AppCompatActivity{
 
         //initialize the tab classes
         substitutionClass = new SubstitutionClass(getApplicationContext(), MainActivity.this, substitutionRecycler);
-        timetableClass = new TimetableClass(getApplicationContext(), timetableRecycler, spacingDP, cardWidth);
+        timetableClass = new TimetableClass(getApplicationContext(), timetableRecycler, spacingDP, cardWidth, MainActivity.this);
 
         //Animation
         final Animation fab_show = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_scale_up);
@@ -201,12 +204,44 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
+        //spinner
+        Spinner spinnerExam = findViewById(R.id.spinnerTabExam);
+        spinnerExam.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                updateExams();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        //spinner
+        Spinner spinnerHomework = findViewById(R.id.spinnerTabHomework);
+        spinnerHomework.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                updateHomework();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
 
             //switch views
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (previousChild != item.getItemId()) {
+
+                    //switching tab means you don't need previous progress bar
+                    progressBar.setVisibility(View.GONE);
+
                     switch ((item.getItemId())) {
                         case R.id.navigation_plan:
                             if(previousChild == R.id.navigation_homework || previousChild == R.id.navigation_exam){
@@ -274,7 +309,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void createSubstitutionView(){
-        if(!(swipeContainerSub.isRefreshing())){
+        if(!(swipeContainerSub.isRefreshing()) && bottomNavigationView.getSelectedItemId() ==  R.id.navigation_plan){
             progressBar.setVisibility(View.VISIBLE);
         }
 
@@ -356,18 +391,17 @@ public class MainActivity extends AppCompatActivity{
                 edit.apply();
 
                 createSubstitutionView();
+                createTimetableView();
             }
         }
     }
 
     //detail viewCards for substitution
-    public void onCreateDetailView(String detail){
-        String detailArray[] = detail.split("~");
-
-        Log.d("ESBLOG", "CLICK: " + detail);
+    public void onCreateSubstitutionDetailView(String[] detail){
+        //detail Array: 0 case,  1 hours, 2 color, 3 date, 4 class, 5 room, 6 teacher, 7 info
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-        final View mView = getLayoutInflater().inflate(R.layout.activity_details, null);
+        final View mView = getLayoutInflater().inflate(R.layout.activity_substitution_details, null);
         TextView txtCase = mView.findViewById(R.id.textViewCase);
         TextView txtHours = mView.findViewById(R.id.textViewHours);
         TextView txtDate = mView.findViewById(R.id.txtDateDetail);
@@ -376,28 +410,24 @@ public class MainActivity extends AppCompatActivity{
         TextView txtTeacher = mView.findViewById(R.id.txtTeacherDetail);
         TextView txtRoom = mView.findViewById(R.id.txtRoomDetail);
 
-        // Array explanation 0 -> head, 1 -> hours, 2 -> color, 3 -> Date, 4 -> Info, 5 -> Teacher, 6 -> Room
-
         //set handed details
-        txtCase.setText(detailArray[0]);
-        txtCase.setTextColor(Color.parseColor(detailArray[2]));
-        txtHours.setText(detailArray[1]);
-        txtHours.setTextColor(Color.parseColor(detailArray[2]));
-        txtDate.setText(detailArray[3]);
-        txtInfo.setText(detailArray[4]);
-        txtTeacher.setText(detailArray[5]);
-        txtRoom.setText(detailArray[6]);
+        txtCase.setText(detail[0]);
+        txtCase.setTextColor(Color.parseColor(detail[2]));
+        txtHours.setText(detail[1]);
+        txtHours.setTextColor(Color.parseColor(detail[2]));
+        txtDate.setText(detail[3]);
+        txtClass.setText(detail[4]);
+        txtRoom.setText(detail[5]);
+        txtTeacher.setText(detail[6]);
+        txtInfo.setText(detail[7]);
 
-        //saved className
-        SharedPreferences classNamePreference = getSharedPreferences("className", 0);
-        String classNameString = classNamePreference.getString("class", "");
-        txtClass.setText(classNameString);
-
-        if(detailArray[0].equals("Nachricht des Tages")){
+        if(detail[0].equals("Nachricht des Tages")){
             txtCase.setText("Nachricht");
         }
 
-        if(detailArray[4].equals(" ")){
+        Log.d("ESBLOG", "Test" + detail[7] + "test");
+
+        if(detail[7].equals(" ")){
             mView.findViewById(R.id.imgDescription).setVisibility(View.GONE);
             mView.findViewById(R.id.txtViewDescription).setVisibility(View.GONE);
 
@@ -407,7 +437,7 @@ public class MainActivity extends AppCompatActivity{
             }
         }
 
-        if(detailArray[5].equals(" ")){
+        if(detail[6].equals(" ")){
             mView.findViewById(R.id.imgTeacher).setVisibility(View.GONE);
             mView.findViewById(R.id.txtViewTeacher).setVisibility(View.GONE);
 
@@ -417,7 +447,7 @@ public class MainActivity extends AppCompatActivity{
             }
         }
 
-        if(detailArray[6].equals(" ")){
+        if(detail[5].equals(" ")){
             mView.findViewById(R.id.imgRoom).setVisibility(View.GONE);
             mView.findViewById(R.id.txtViewRoom).setVisibility(View.GONE);
 
@@ -426,25 +456,47 @@ public class MainActivity extends AppCompatActivity{
                 relative.setVisibility(View.GONE);
             }
         }
-        if(detailArray[1].length() > 4){
+        if(detail[1].length() > 4){
             txtHours.setTextSize(28);
         }
+
+
 
         mBuilder.setView(mView);
         final AlertDialog dialog = mBuilder.create();
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation; //up-down animation
         dialog.show();
 
-        final GestureDetector gdt = new GestureDetector(this, new GestureListener());
+       mView.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()){
+            public void onSwipeBottom() {
+                dialog.dismiss();
+            }
+        });
+    }
 
-        //listener for fling gesture
-        mView.setOnTouchListener(new View.OnTouchListener(){
-            public boolean onTouch(View v, MotionEvent motion) {
-                if(gdt.onTouchEvent(motion)){
-                    dialog.dismiss();
-                    return false;
-                }
-                return true;
+    public void onCreateTimetableDetailView(String[] detail){
+        //detail Array: 0 lesson, 1 color, 2 room, 3 teacher
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+        final View mView = getLayoutInflater().inflate(R.layout.activity_timetable_details, null);
+        CardView cardTimetable = mView.findViewById(R.id.timetableCardView);
+        TextView txtLesson = mView.findViewById(R.id.timetableLesson);
+        TextView txtRoom = mView.findViewById(R.id.timetableRoom);
+        TextView txtTeacher = mView.findViewById(R.id.timetableTeacher);
+        TextView txtTime = mView.findViewById(R.id.timetableTime);
+
+        cardTimetable.setBackgroundColor(Color.parseColor(detail[1]));
+        txtLesson.setText(detail[0]);
+        txtRoom.setText(detail[2]);
+        txtTeacher.setText(detail[3]);
+
+        mBuilder.setView(mView);
+        final AlertDialog dialog = mBuilder.create();
+        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation; //up-down animation
+        dialog.show();
+
+        mView.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()){
+            public void onSwipeBottom() {
+                dialog.dismiss();
             }
         });
     }
@@ -453,14 +505,6 @@ public class MainActivity extends AppCompatActivity{
         //turn refresher off
         swipeContainerSub.setRefreshing(false);
         progressBar.setVisibility(View.GONE);
-    }
-
-    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
-        @Override
-        public boolean onScroll(MotionEvent event1, MotionEvent event2, float distanceX, float distanceY) {
-            //Down-gesture
-            return distanceX > -25 && distanceX < 25 && distanceY < -8;
-        }
     }
 
     @Override
@@ -564,23 +608,70 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
+    private void homeworkCompleted(final ArrayList<HashMap<String, String>> list, int position){
+        final String currentID = "ID = " + list.get(position).get(SourceHw.allColumns[0]);
+        final String title = list.get(position).get(SourceHw.allColumns[1]);
+        final String subject = list.get(position).get(SourceHw.allColumns[2]);
+        final long time = Long.valueOf(list.get(position).get(SourceHw.allColumns[5])).longValue();
+        final String info = list.get(position).get(SourceHw.allColumns[3]);
+        final String urgent = list.get(position).get(SourceHw.allColumns[4]);
+        final String color = list.get(position).get(SourceHw.allColumns[6]);
+        final String completed = "true";
+        Log.d("ESBLOG", "TEST: " + currentID + " " + title  + " " + subject + " " + time + " " + info + " " + urgent + " " + color + " " + completed);
+        Homework.add(getApplicationContext(), currentID, title, subject, time, info, urgent, color, completed);
+    }
+
     private void updateHomework() {
         // Remove old content
         hwArray.clear();
+        Spinner spinner = findViewById(R.id.spinnerTabHomework);
+        int positionSpinner = spinner.getSelectedItemPosition();
         final SourceHw s = new SourceHw(this);
 
         // Get content from SQLite Database
         try {
             s.open();
-            hwArray = s.get(this);
+            hwArray = s.get(this, positionSpinner);
             s.close();
         } catch (Exception ex) {
             Log.e("Update Homework List", ex.toString());
         }
 
         final ListAdapter hw = CustomAdapter.entry(this, hwArray, true); //true means homework
+        ViewGroup.LayoutParams params = hwList.getLayoutParams();
+        float scale = getApplicationContext().getResources().getDisplayMetrics().density;
+        int pixels = (int) (hw.getCount() * 76 * scale + 0.5f);
+        params.height = pixels;
+        hwList.setFocusable(false);
+        hwList.setLayoutParams(params);
         hwList.setAdapter(hw);
         registerForContextMenu(hwList);
+
+        if(positionSpinner == 0) { //only if "nicht erledigt"
+            SwipeDismissListViewTouchListener touchListener =
+                    new SwipeDismissListViewTouchListener(
+                            hwList,
+                            new SwipeDismissListViewTouchListener.DismissCallbacks() {
+                                @Override
+                                public boolean canDismiss(int position) {
+                                    return true;
+                                }
+
+                                @Override
+                                public void onDismiss(ListView listView, int[] reverseSortedPositions) {
+                                    for (int position : reverseSortedPositions) {
+                                        homeworkCompleted(hwArray, position);
+                                        updateHomework();
+                                    }
+
+
+                                }
+                            });
+            hwList.setOnTouchListener(touchListener);
+        }
+        else{
+            hwList.setOnTouchListener(null);
+        }
 
         TextView txt = findViewById(R.id.txtNoHomework);
 
@@ -595,19 +686,26 @@ public class MainActivity extends AppCompatActivity{
     private void updateExams() {
         // Remove old content
         exArray.clear();
+        Spinner spinner = findViewById(R.id.spinnerTabExam);
+        int position = spinner.getSelectedItemPosition();
         final SourceEx s = new SourceEx(this);
 
         // Get content from SQLite Database
         try {
             s.open();
-            exArray = s.get(this);
+            exArray = s.get(this, position);
             s.close();
         } catch (Exception ex) {
             Log.e("Update Homework List", ex.toString());
         }
 
         final ListAdapter ex = CustomAdapter.entry(this, exArray, false); //false means exam
-        Log.d("ESBLOG", "Adapter: " + ex.getCount());
+        ViewGroup.LayoutParams params = exList.getLayoutParams();
+        float scale = getApplicationContext().getResources().getDisplayMetrics().density;
+        int pixels = (int) (ex.getCount() * 75 * scale + 0.5f);
+        params.height = pixels;
+        exList.setFocusable(false);
+        exList.setLayoutParams(params);
         exList.setAdapter(ex);
         registerForContextMenu(exList);
 

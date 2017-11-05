@@ -79,4 +79,14 @@
         <item>Hausarbeit</item>
     </string-array>
 
+    <string-array name="homework_tab_spinner">
+        <item>Nicht erledigt</item>
+        <item>Erledigt</item>
+    </string-array>
+
+    <string-array name="exam_tab_spinner">
+        <item>Bevorstehend</item>
+        <item>Abgeschlossen</item>
+    </string-array>
+
 </resources>

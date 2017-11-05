@@ -205,7 +205,7 @@ public final class AddExam extends AppCompatActivity{
         final String color;
 
         if(subject.equals("Mathe")){
-            color = getApplicationContext().getResources().getString(0+ R.color.specialTeal);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialTeal1);
         }
         else if(subject.equals("Deutsch")){
             color = getApplicationContext().getResources().getString(0+ R.color.MaterialAmber);

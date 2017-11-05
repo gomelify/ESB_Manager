@@ -14,26 +14,30 @@
     </string-array>
 
     <array name="pickerColors">
-        <item>@color/standardRoomChange</item>
-        <item>@color/specialOrange</item>
-        <item>@color/specialDeepOrange</item>
-        <item>@color/specialRed</item>
-        <item>@color/standardCancel</item>
-        <item>@color/standardEvent</item>
-        <item>@color/specialPink</item>
-        <item>@color/specialPink2</item>
-        <item>@color/standardWithOther</item>
-        <item>@color/specialPurple2</item>
-        <item>@color/specialDeepPurple</item>
-        <item>@color/specialIndigo</item>
-        <item>@color/specialIndigo2</item>
-        <item>@color/standardSpecial</item>
-        <item>@color/specialBlue</item>
-        <item>@color/specialLightBlue</item>
-        <item>@color/specialCyan</item>
-        <item>@color/specialTeal</item>
-        <item>@color/specialLightGreen</item>
-        <item>@color/standardChange</item>
+        <item>@color/MaterialOrange1</item>
+        <item>@color/MaterialOrange2</item>
+        <item>@color/MaterialOrange3</item>
+        <item>@color/MaterialRed2</item>
+        <item>@color/MaterialRed3</item>
+        <item>@color/MaterialPink1</item>
+        <item>@color/MaterialPink2</item>
+        <item>@color/MaterialPink3</item>
+        <item>@color/MaterialPink4</item>
+        <item>@color/MaterialPurple2</item>
+        <item>@color/MaterialPurple3</item>
+        <item>@color/MaterialDeepPurple1</item>
+        <item>@color/MaterialDeepPurple2</item>
+        <item>@color/MaterialDeepPurple3</item>
+        <item>@color/MaterialIndigo1</item>
+        <item>@color/MaterialBlue1</item>
+        <item>@color/MaterialBlue2</item>
+        <item>@color/MaterialBlue3</item>
+        <item>@color/MaterialBlue4</item>
+        <item>@color/MaterialCyan1</item>
+        <item>@color/MaterialCyan2</item>
+        <item>@color/MaterialTeal2</item>
+        <item>@color/MaterialGreen1</item>
+        <item>@color/MaterialGreen2</item>
     </array>
 
      </resources>

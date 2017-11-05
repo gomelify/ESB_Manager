@@ -5,15 +5,14 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 
 import com.ronschka.david.esb.MainActivity;
 import com.ronschka.david.esb.R;
+import com.ronschka.david.esb.helper.SubConnectionClass;
 import com.ronschka.david.esb.helper.SubstitutionAdapter;
-import com.ronschka.david.esb.helper.SubParserClass;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,25 +37,30 @@ public class SubstitutionClass{
     public void parseSubstitution(){
         //parsedList is saved, so first of all the string should be used for recyclerView
         SharedPreferences substitutionPreference = PreferenceManager.getDefaultSharedPreferences(context);
-        String value = substitutionPreference.getString("parsedList", "noValue");
+        String savedSub = substitutionPreference.getString("parsedList", "noValue");
 
-        if(!value.equals("noValue") && substitutionRefresh) {
+        if(!savedSub.equals("noValue") && substitutionRefresh) {
+            String[] splitter = savedSub.split(" DATESPLIT ");
+
+            ArrayList<String> subList = new ArrayList<>(
+                    Arrays.asList(splitter[0].split(" DAYSPLIT ")));
+
+            subList.add(10, splitter[1]); //date information
             substitutionRefresh = false;
-            recyclerView.setAdapter(new SubstitutionAdapter(clearString(value), mainAct, context));
+            recyclerView.setAdapter(new SubstitutionAdapter(subList, mainAct, context));
         }
 
         //get the current week
         Calendar calender = Calendar.getInstance();
         int currentWeek = calender.get(Calendar.WEEK_OF_YEAR);
 
-        //create the PrefsFragment in SettingsActivity to get a
-        //PreferenceFragment and read the value of list
+        //create the PrefsFragment in SettingsActivity to get the class value of the list
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         String classNumber = pref.getString("classList","0");
         String attach;
 
         String urlSubCurrent;
-        String urlSubNext = " ";
+        String urlSubNext;
 
         //TODO TEST PURPOSE
         String className = substitutionPreference.getString("class", "");
@@ -74,16 +78,16 @@ public class SubstitutionClass{
                 attach = classNumber;
             }
 
+            //TODO test run
+            currentWeek = 42;
+
             //this URL with the class attachment will be parsed
-            urlSubCurrent = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + currentWeek + "/w00" + attach + ".htm";
+            urlSubCurrent = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis" +
+                    "/w/" + currentWeek + "/w00" + attach + ".htm";
 
-            Calendar calendar = Calendar.getInstance();
-            int day = calendar.get(Calendar.DAY_OF_WEEK);
-
-            //on the day after tuesday of the current week, there could be a plan for next week
-            if (day != Calendar.MONDAY && day != Calendar.TUESDAY) {
-                urlSubNext = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis/w/" + (currentWeek + 1) + "/w00" + attach + ".htm";
-            }
+            //there could be a plan for next week
+            urlSubNext = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis" +
+                    "/w/" + (currentWeek + 1) + "/w00" + attach + ".htm";
         }
 
         //for this and next week
@@ -95,7 +99,7 @@ public class SubstitutionClass{
         String pass = login.getString("Psw","");
 
         //receive the result fired from async class of onPostExecute(result) method
-        new SubParserClass(new SubParserClass.AsyncResponse() {
+        new SubConnectionClass(new SubConnectionClass.AsyncResponse() {
             @Override
             public void processFinish(String output) {
                 //Preference for substitution values
@@ -107,14 +111,18 @@ public class SubstitutionClass{
                     edit.putString("parsedList", output);
                     edit.apply();
 
-                    ArrayList<String> newList = clearString(output);
+                    String[] splitter = output.split(" DATESPLIT ");
 
+                    ArrayList<String> subList = new ArrayList<>(
+                            Arrays.asList(splitter[0].split(" DAYSPLIT ")));
+
+                    subList.add(10, splitter[1]); //date information
                     recyclerView.setItemViewCacheSize(30);
                     recyclerView.setDrawingCacheEnabled(true);
                     recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
                     recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-                    recyclerView.setAdapter(new SubstitutionAdapter(newList, mainAct, context) {
+                    recyclerView.setAdapter(new SubstitutionAdapter(subList, mainAct, context) {
                     });
 
                     runLayoutAnimation(recyclerView);
@@ -139,187 +147,9 @@ public class SubstitutionClass{
         recyclerView.scheduleLayoutAnimation();
     }
 
-    private ArrayList<String> clearString(String value){
-        String[] date = new String[10];
-
-        String[] splitOutput = value.split(" SPLIT ");
-        ArrayList<String> parsedListCurrent = new ArrayList<>(
-                Arrays.asList(splitOutput[0].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
-
-        //extend formatting
-        for (int i = 1; i < 7; i++) {
-            String x = parsedListCurrent.get(i - 1);
-
-            if (i == 1) {
-                //date of the first day (day 0) (no information)
-                x = x.replaceAll("Untis 2017  4  Eduard-Spranger-Berufskolleg Hamm  1", "");
-                x = x.replaceFirst(" ", "");
-
-                //date
-                String[] y0 = x.split(" ");
-                date[0] = (y0[y0.length - 1]).trim();
-            } else if (i == 2) {
-                //day 1 information
-                x = x.replaceAll("\\|","");
-                x = x.replaceAll("\\[","");
-                x = x.replaceAll("]","");
-                x = x.replaceFirst(" Dienstag ", "");
-                x = x.replaceFirst(" Mittwoch ", "");
-                x = x.replaceFirst(" Donnerstag ", "");
-                x = x.replaceFirst(" Freitag ", "");
-                x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-                x = x.trim(); //trims space on begin and end
-
-                if(!x.contains("Nachrichten zum Tag")){
-                    x = x.replaceFirst("~ ","");
-                }
-
-                parsedListCurrent.remove(i - 2);
-                parsedListCurrent.add(i - 2, x);
-
-                Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
-            } else {
-                //day 2 - 5 information
-                x = x.replaceFirst(" ", "");
-                x = x.replaceAll("\\|","");
-                x = x.replaceAll("\\[","");
-                x = x.replaceAll("]","");
-                x = x.replaceFirst(" Dienstag ", "");
-                x = x.replaceFirst(" Mittwoch ", "");
-                x = x.replaceFirst(" Donnerstag ", "");
-                x = x.replaceFirst(" Freitag ", "");
-                x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-
-                //date
-                String[] split = x.split("\\.");
-                date[i - 2] = (split[0] + "." + split[1] + ".").trim();
-
-                //replace the date (only information is left)
-                x = x.replaceFirst(date[i - 2], "");
-
-                if(!x.contains("Nachrichten zum Tag")){
-                    x = x.replaceFirst("~ ","");
-                }
-                if(i == 6){ //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
-                    String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
-                    x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
-                    x = x.trim();
-                }
-                x = x.trim();
-                parsedListCurrent.remove(i - 2);
-                parsedListCurrent.add(i - 2, x);
-
-                Log.d("ESBLOG", "Show me list of day " + (i-1) + ": " + x);
-            }
-        }//list 0 -> date | list 1 - 5 -> info
-
-        //cluster which isn't needed
-        parsedListCurrent.remove(5);
-
-        if(value.contains("SPLIT")) { //only next week, if split is available
-
-            ArrayList<String> parsedListNext = new ArrayList<>(
-                    Arrays.asList(splitOutput[1].split("\\[ Montag ]"))); //split by [ Montag ] to prevent wrong splits
-
-            //extend formatting
-            for (int i = 1; i < 7; i++) {
-                String x = parsedListNext.get(i - 1);
-
-                if (i == 1) {
-                    //date of the first day (day 0) (no information)
-                    x = x.replaceAll("Untis 2017  4  Eduard-Spranger-Berufskolleg Hamm  1", "");
-                    x = x.replaceFirst(" ", "");
-
-                    //date
-                    String[] y0 = x.split(" ");
-                    date[5] = (y0[y0.length - 1]).trim();
-                } else if (i == 2) {
-                    //day 1 information
-                    x = x.replaceAll("\\|", "");
-                    x = x.replaceAll("\\[", "");
-                    x = x.replaceAll("]", "");
-                    x = x.replaceFirst(" Dienstag ", "");
-                    x = x.replaceFirst(" Mittwoch ", "");
-                    x = x.replaceFirst(" Donnerstag ", "");
-                    x = x.replaceFirst(" Freitag ", "");
-                    x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-                    x = x.trim(); //trims space on begin and end
-
-                    if (!x.contains("Nachrichten zum Tag")) {
-                        x = x.replaceFirst("~ ", "");
-                    }
-
-                    parsedListNext.remove(i - 2);
-                    parsedListNext.add(i - 2, x);
-
-                    Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
-                } else {
-                    //day 2 - 5 information
-                    x = x.replaceFirst(" ", "");
-                    x = x.replaceAll("\\|", "");
-                    x = x.replaceAll("\\[", "");
-                    x = x.replaceAll("]", "");
-                    x = x.replaceFirst(" Dienstag ", "");
-                    x = x.replaceFirst(" Mittwoch ", "");
-                    x = x.replaceFirst(" Donnerstag ", "");
-                    x = x.replaceFirst(" Freitag ", "");
-                    x = x.replaceAll("\\u00A0", ""); //special html character appears like a space
-
-                    //date
-                    String[] split = x.split("\\.");
-                    date[i + 3] = (split[0] + "." + split[1] + ".").trim();
-
-                    //replace the date (only information is left)
-                    x = x.replaceFirst(date[i + 3], "");
-
-                    if (!x.contains("Nachrichten zum Tag")) {
-                        x = x.replaceFirst("~ ", "");
-                    }
-                    if (i == 6) { //Last part -> remove 2. HJ 16/17 ab 19.6. 14.7.2017
-                        String splitter[] = x.split(" 1\\. HJ | 2\\. HJ ");
-                        x = splitter[0]; //remove last separated part, splitter[1] contains e.g. 2. HJ 16/17 ab 19.6. 14.7.2017
-                        x = x.trim();
-                    }
-                    x = x.trim();
-                    parsedListNext.remove(i - 2);
-                    parsedListNext.add(i - 2, x);
-
-                    Log.d("ESBLOG", "Show me list of day " + (i - 1) + ": " + x);
-                }
-            }//list 0 -> date | list 5 - 10 -> info
-
-            //cluster which isn't needed
-            parsedListNext.remove(5);
-
-            //add all lines of the nextWeek - list into current list
-            parsedListCurrent.addAll(parsedListNext);
-        }
-
-        //separate every date with a comma to save it as a string
-        StringBuilder dateBuilder = new StringBuilder();
-        for (String n : date) {
-            dateBuilder.append(n + ",");
-        }
-        dateBuilder.deleteCharAt(dateBuilder.length() - 1);
-        parsedListCurrent.add(0, dateBuilder.toString());
-
-        String withoutRedun;
-        //check the redundancy for every day and replace
-        for(int i = 1; i < parsedListCurrent.size(); i++){
-            if(!parsedListCurrent.get(i).contains("Vertretungen sind nicht freigegeben") &&
-                    !parsedListCurrent.get(i).contains("Keine Vertretungen")){
-
-                withoutRedun = eliminateRedundancy(parsedListCurrent.get(i));
-                parsedListCurrent.remove(i);
-                parsedListCurrent.add(i, withoutRedun);
-            }
-        }
-
-        return parsedListCurrent;
-    }
-
     //in some cases there are redundant listings so they can be
     //summarized in one card, the function checks if the case is the same
+    //TODO overwrite it
     private String eliminateRedundancy(String checkString){
 
         String info[] = checkString.split(" ~ ");

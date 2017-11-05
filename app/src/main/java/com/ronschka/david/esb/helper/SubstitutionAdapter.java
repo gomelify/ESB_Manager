@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +20,12 @@ import java.util.Calendar;
 import java.util.List;
 
 public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapter.SubstitutionRecyclerViewHolders>{
-    ArrayList<String> array;
-    MainActivity mainActivity;
-    String cancelColor, withOtherColor, roomchangeColor, eventColor, changeColor, specialColor;
-    Context context;
-
-    String date[] = new String[10];
-    String fullInformationStr; //this String contains redundancy controlled information
+    private ArrayList<String> array;
+    private MainActivity mainActivity;
+    private String cancelColor, withOtherColor, roomchangeColor, eventColor, changeColor, specialColor;
+    private Context context;
+    private ArrayList<String> fullInformation;
+    private String[] date;
     int currentViewType = 0;
     int year = Calendar.getInstance().get(Calendar.YEAR);
 
@@ -35,6 +33,8 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
         this.context = context;
         this.mainActivity = mainAct;
         this.array = array;
+        this.date = array.get(10).split(",");
+
         //Preference for color values
         final SharedPreferences colors = PreferenceManager.getDefaultSharedPreferences(context);
 
@@ -45,28 +45,26 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
         eventColor = colors.getString("color_event", context.getResources().getString(0+R.color.standardEvent));
         changeColor = colors.getString("color_change", context.getResources().getString(0+R.color.standardChange));
         specialColor = colors.getString("color_special", context.getResources().getString(0+R.color.standardSpecial));
-
-        date = array.get(0).split(","); //array 0 is date in string
     }
 
     @Override
     public int getItemViewType(int position) {
-
-        if (array.get(position + 1).contains("Vertretungen sind nicht freigegeben")){
+        if (array.get(position).contains("Vertretungen sind nicht freigegeben")){
             currentViewType = 0;
             return 0; //show nothing
         }
-        else if(array.get(position + 1).contains("Keine Vertretungen") && !array.get(position + 1).contains("Nachrichten zum Tag")) {
+        else if(array.get(position).contains("Keine Vertretungen") &&
+                !array.get(position).contains("Nachrichten zum Tag")) {
             currentViewType = 1;
             return 1; //show void card
         }
 
-        fullInformationStr = array.get(position + 1);
+        fullInformation = new ArrayList<>(
+                Arrays.asList(array.get(position).split(" SPLIT ")));
 
-        if(fullInformationStr.split(" ~ ").length > 1){ //splitter character -> more than one cases
-
+        if(fullInformation.size() > 1){ //-> more than one cases
             //switch between the different extended cards
-            switch(fullInformationStr.split(" ~ ").length + 1){ //redundancy doesn't need extra cards
+            switch(fullInformation.size() + 1){
                 case 3:
                     currentViewType = 3;
                     return 3;
@@ -116,259 +114,66 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
         return null;
     }
 
-    //TODO short BindViewHolder and create Object: Substitution
     @Override
     public void onBindViewHolder(SubstitutionRecyclerViewHolders holder, int position) {
-        int infoQuantity = 1; //how many info cards
-        String dateString = "";
-
-        //                  !!! FILL THE CARDS WITH DATE-INFORMATION  !!!
-        //null presets don't contain a day TextView
-        if (currentViewType > 0 || currentViewType == -1) {
-            switch (position + 1) {
-                case 1:
-                    dateString = "Montag, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-                case 2:
-                    dateString = "Dienstag, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-                case 3:
-                    dateString = "Mittwoch, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-                case 4:
-                    dateString = "Donnerstag, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-                case 5:
-                    dateString = "Freitag, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-                case 6:
-                    dateString = "Montag, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-                case 7:
-                    dateString = "Dienstag, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-                case 8:
-                    dateString = "Mittwoch, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-                case 9:
-                    dateString = "Donnerstag, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-                case 10:
-                    dateString = "Freitag, " + date[position] + year;
-                    holder.day.setText(dateString);
-                    break;
-            }
-        }
-
         //                      !!! FILL THE CARDS WITH DETAILS !!!
         //Filled preset
         if (currentViewType > 1) {
+            for (int actualInfoCounter = 0; actualInfoCounter < fullInformation.size(); actualInfoCounter++) {
+                //explanation: 0 - day, 1 - date, 2 - class, 3 - hours, 4 - teacher, 5 - room, 6 - case, 7 - infoText
+                List<String> infoList = new ArrayList<>(Arrays.asList(fullInformation.get(actualInfoCounter).split("~")));
 
-            //save parsed data in specified strings
-            String strHours, strHead, strInfo, strColor; //needed for simple cardView
-            String detailTeacher, detailInfo, detailRoom; //needed for detail cardView
+                String strHours = infoList.get(3).replace(" ",""),      //needed for simple cardView
+                        strInfo, strHead, strColor;
 
-            //default values
-            strHours = "1-2";
-            strHead = "Entfall";
-            strInfo = "Herr Beispiel ist ganz dolle krank :(";
-            strColor = "#C62828";
+                String detailDate = infoList.get(1),                    //needed for detail cardView
+                        detailClass = infoList.get(2),
+                        detailTeacher = infoList.get(4),
+                        detailRoom = infoList.get(5),
+                        detailInfo = infoList.get(7);
 
-            //new list for information needed for split
-            List<String> infoList;
-
-            //catch event: more info-cards
-            if (currentViewType > 2) {
-                infoQuantity = currentViewType - 1; //amount of cards
-                infoList = new ArrayList<>(Arrays.asList(fullInformationStr
-                        .split(" ~ "))); //multiple info = split them in list
-            } else {
-                infoList = new ArrayList<>();
-                infoList.add(0, fullInformationStr); //no multiple info = default string info
-            }
-
-            for (int actualInfoCounter = 0; actualInfoCounter < infoQuantity; actualInfoCounter++) {
-
-                String infoString = infoList.get(actualInfoCounter);
-                infoString = infoString.trim();
-
-                Log.d("ESBLOG", "Fragment: " + "Nr. " + actualInfoCounter + " / " + (position + 1) + ": " + infoString);
-
-                //reset details
-                detailTeacher = " ";
-                detailInfo = " ";
-                detailRoom = " ";
-
-                //Case: Fällt aus
-                if (infoString.contains("Fällt aus")) {
-
-                    strHead = "Entfall";
-                    strColor = cancelColor;
-
-                    String[] splitter = infoString.split(" ");
-                    String info[];
-
-                    if (splitter[3].equals("-")) { //more hours e.g. 1 - 2
-                        strHours = splitter[2] + "-" + splitter[4];
-                        info = infoString.split(" ", 10);
-                        detailTeacher = splitter[5];
-
-                        if (info.length == 10) {//only if reason exists
-                            detailInfo = info[9];
-                            strInfo = detailInfo + ", Lehrer: " + detailTeacher;
-                        } else {
-                            strInfo = "Lehrer: " + detailTeacher;
-                        }
-                    } else { //only one hour
-                        strHours = splitter[2];
-                        info = infoString.split(" ", 8);
-                        detailTeacher = splitter[3];
-
-                        if (info.length == 8) {//only if reason exists
-                            detailInfo = info[7];
-                            strInfo =  detailInfo + ", Lehrer: " + detailTeacher;
-                        } else {
-                            strInfo = "Lehrer: " + detailTeacher;
-                        }
-                    }
-                }
-
-                //Case: Mitbetreuung
-                else if (infoString.contains("Mitbetreuung")) {
-                    String[] splitter = infoString.split("Mitbetreuung");
-
-                    strHead = "Mitbetreuung";
-                    strColor = withOtherColor;
-
-                    //if no reason is added
-                    if (splitter.length == 1) {
-
-                        String[] x = infoString.split(" ");
-                        detailRoom = x[x.length - 2];
-                        detailTeacher = x[x.length - 3];
-
+                switch(infoList.get(6)){
+                    case "Fällt aus":
+                        strHead = "Entfall";
+                        strColor = cancelColor;
+                        strInfo = detailInfo + ", Lehrer: " + detailTeacher;
+                        break;
+                    case "Mitbetreuung":
+                        strHead = "Mitbetreuung";
+                        strColor = withOtherColor;
                         strInfo = "Lehrer: " + detailTeacher + ", in Raum: " + detailRoom;
-
-                        if (infoString.contains("-")) {
-                            strHours = x[x.length - 6] + "-" + x[x.length - 4];
-                        } else {
-                            strHours = x[x.length - 4];
-                        }
-                    }
-                    //there is a reason
-                    else {
-                        splitter[1] = splitter[1].replaceFirst(" ", "");
-                        String[] split = splitter[0].split(" ");
-
-                        detailInfo = splitter[1];
-                        detailRoom = split[split.length - 1];
-                        detailTeacher = split[split.length - 2];
-
-                        strInfo = "Lehrer: " + detailTeacher + ", in Raum: " + detailRoom; //+ ", Info: " + detailInfo;
-
-                        if (splitter[0].contains("-")) {
-                            strHours = split[split.length - 5] + "-" + split[split.length - 3];
-                        } else {
-                            strHours = split[split.length - 3];
-                        }
-                    }
-                }
-
-                //Case: Raumwechsel
-                else if (infoString.contains("Anderer Raum!")) {
-                    strHead = "Raumwechsel";
-                    strColor = roomchangeColor;
-
-                    String splitter[] = infoString.split(" ");
-
-                    if (!splitter[3].equals("-")) {
-                        detailTeacher = splitter[3];
-                        detailRoom = splitter[4];
+                        break;
+                    case "Raumwechsel":
+                        strHead = "Raumwechsel";
+                        strColor = roomchangeColor;
                         strInfo = "Lehrer: " + detailTeacher + ", in Raum: " + detailRoom;
-                        strHours = splitter[2];
-                    } else { //hours like 1-2
-                        detailTeacher = splitter[5];
-                        detailRoom = splitter[6];
-                        strHours = splitter[2] + "-" + splitter[4];
-                        strInfo = "Lehrer: " + detailTeacher + ", in Raum: " + detailRoom;
-                    }
-                }
-
-                //Case: Veranstaltung
-                else if(infoString.contains("Veranst.")){
-                    strHead = "Veranstaltung";
-                    strColor = eventColor;
-
-                    String newInfoString = infoString.replaceAll("   "," ");
-                    String splitter[] = newInfoString.split(" ");
-
-                    if(splitter.length == 7){
-                        strHours = splitter[2];
-                        detailTeacher = splitter[3];
-                        detailRoom = splitter[4];
-                        detailInfo = splitter[6];
+                        break;
+                    case "Veranst.":
+                        strHead = "Veranstaltung";
+                        strColor = eventColor;
                         strInfo = detailInfo + " in " + detailRoom;
-                    }
-                    else if(splitter.length == 6){
-                        strHours = splitter[2];
-                        detailTeacher = splitter[3];
-                        detailRoom = splitter[4];
-                        detailInfo = splitter[5];
-                        strInfo = detailInfo + " in " + detailRoom;
-                    }
-                }
-
-                //Case: Nachrichten zum Tag
-                else if(infoString.contains("Nachrichten zum Tag")){
-                    strHead = "Nachricht des Tages";
-                    strColor = specialColor;
-                    strHours = "";
-
-                    String newInfoString = infoString.replaceAll("   "," ");
-                    String splitter[] = newInfoString.split(" " , 5);
-
-                    detailInfo = splitter[4];
-                    strInfo = detailInfo;
-                }
-                //Case: Vertretung
-                else if(!infoString.isEmpty()) {
-                    strHead = "Vertretung";
-                    strColor = changeColor;
-
-                    String splitter[] = infoString.split(" ");
-
-                    if (splitter[3].contains("-")) {
-                        strHours = splitter[2] + "-" + splitter[4];
-                        detailTeacher = splitter[5];
-                        detailRoom = splitter[6];
-
-                        if(splitter.length > 5){
+                        break;
+                    case "Anderer Raum!":
+                        strHead = "Raumwechsel";
+                        strColor = roomchangeColor;
+                        strInfo = "Lehrer: " + detailTeacher + ", in Raum: " + detailRoom;
+                        break;
+                    case "Nachrichten zum Tag":
+                        strHead = "Nachricht des Tages";
+                        strColor = specialColor;
+                        strHours = "";
+                        strInfo = detailInfo;
+                        break;
+                    default: //Vertretung
+                        strHead = "Vertretung";
+                        strColor = changeColor;
+                        if(!detailRoom.isEmpty()){
                             strInfo = "Lehrer: " + detailTeacher + ", in Raum: " + detailRoom;
                         }
                         else{
                             strInfo = "Lehrer: " + detailTeacher;
                         }
-                    } else {
-                        strHours = splitter[2];
-                        detailTeacher = splitter[3];
-
-                        if(splitter.length > 4){
-                            detailRoom = splitter[4];
-                            strInfo = "Lehrer: " + detailTeacher + ", in Raum: " + detailRoom;
-                        }
-                        else{
-                            strInfo = "Lehrer: " + detailTeacher;
-                        }
-                    }
+                        break;
                 }
 
                 //put info to textViews, switch-case -> different quantities -> different textViews
@@ -389,16 +194,10 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
                         holder.head1.setTextColor(Color.parseColor(strColor));
                         holder.hour1.setTextColor(Color.parseColor(strColor));
 
-                        //click Listener
-                        final String finalStrHead = strHead;
-                        final String finalStrHours = strHours;
-                        final String finalStrColor = strColor;
-                        final String finalStrDate = dateString;
-                        final String finalStrInfo = detailInfo;
-                        final String finalStrTeacher = detailTeacher;
-                        final String finalStrRoom = detailRoom;
+                        final String[] detailEntry = {strHead, strHours, strColor, (detailDate + year),
+                            detailClass, detailRoom, detailTeacher, detailInfo};
 
-                        //Case: Nachrichten zum Tag! could only be the first one
+                        //Case: Nachrichten zum Tag! can only be the first one
                         if(strColor.equals(specialColor)){
                             holder.hour1.setVisibility(View.GONE);
                             //special height
@@ -413,9 +212,7 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
                         holder.card1.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                String detail = finalStrHead + "~" + finalStrHours + "~" + finalStrColor
-                                        + "~" + finalStrDate + "~" + finalStrInfo + "~" + finalStrTeacher + "~" + finalStrRoom;
-                                mainActivity.onCreateDetailView(detail);
+                                mainActivity.onCreateSubstitutionDetailView(detailEntry);
                             }
                         });
                         break;
@@ -434,21 +231,13 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
                         holder.head2.setTextColor(Color.parseColor(strColor));
                         holder.hour2.setTextColor(Color.parseColor(strColor));
 
-                        //click Listener
-                        final String finalStrHead2 = strHead;
-                        final String finalStrHours2 = strHours;
-                        final String finalStrColor2 = strColor;
-                        final String finalStrDate2 = dateString;
-                        final String finalStrInfo2 = detailInfo;
-                        final String finalStrTeacher2 = detailTeacher;
-                        final String finalStrRoom2 = detailRoom;
+                        final String[] detailEntry2 = {strHead, strHours, strColor, (detailDate + year),
+                                detailClass, detailRoom, detailTeacher, detailInfo};
 
                         holder.card2.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                String detail = finalStrHead2 + "~" + finalStrHours2 + "~" + finalStrColor2 + "~"
-                                        + finalStrDate2 + "~" + finalStrInfo2 + "~" + finalStrTeacher2 + "~" + finalStrRoom2;
-                                mainActivity.onCreateDetailView(detail);
+                                mainActivity.onCreateSubstitutionDetailView(detailEntry2);
                             }
                         });
                         break;
@@ -467,25 +256,66 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
                         holder.head3.setTextColor(Color.parseColor(strColor));
                         holder.hour3.setTextColor(Color.parseColor(strColor));
 
-                        //click Listener
-                        final String finalStrHead3 = strHead;
-                        final String finalStrHours3 = strHours;
-                        final String finalStrColor3 = strColor;
-                        final String finalStrDate3 = dateString;
-                        final String finalStrInfo3 = detailInfo;
-                        final String finalStrTeacher3 = detailTeacher;
-                        final String finalStrRoom3 = detailRoom;
+                        final String[] detailEntry3 = {strHead, strHours, strColor, (detailDate + year),
+                                detailClass, detailRoom, detailTeacher, detailInfo};
 
                         holder.card3.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                String detail = finalStrHead3 + "~" + finalStrHours3 + "~" + finalStrColor3 + "~"
-                                        + finalStrDate3 + "~" + finalStrInfo3 + "~" + finalStrTeacher3 + "~" + finalStrRoom3;
-                                mainActivity.onCreateDetailView(detail);
+                                mainActivity.onCreateSubstitutionDetailView(detailEntry3);
                             }
                         });
                         break;
                 }
+            }
+        }
+
+        //                  !!! FILL THE CARDS WITH DATE-INFORMATION  !!!
+
+        String dateString;
+        //null presets don't contain a day TextView
+        if (currentViewType > 0 || currentViewType == -1) {
+            switch (position) {
+                case 0:
+                    dateString = "Montag, " + date[0] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 1:
+                    dateString = "Dienstag, " + date[1] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 2:
+                    dateString = "Mittwoch, " + date[2] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 3:
+                    dateString = "Donnerstag, " + date[3] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 4:
+                    dateString = "Freitag, " + date[4] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 5:
+                    dateString = "Montag, " + date[5] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 6:
+                    dateString = "Dienstag, " + date[6] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 7:
+                    dateString = "Mittwoch, " + date[7] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 8:
+                    dateString = "Donnerstag, " + date[8] + year;
+                    holder.day.setText(dateString);
+                    break;
+                case 9:
+                    dateString = "Freitag, " + date[9] + year;
+                    holder.day.setText(dateString);
+                    break;
             }
         }
     }

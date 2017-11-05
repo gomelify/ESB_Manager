@@ -21,7 +21,7 @@ public final class SourceEx {
     /**
      * All columns used in the database.
      */
-    public static final String[] allColumns = {"ID", "HOMEWORK", "SUBJECT", "INFO", "URGENT", "TIME", "COMPLETED", "COLOR"};
+    public static final String[] allColumns = {"ID", "HOMEWORK", "SUBJECT", "INFO", "URGENT", "TIME", "COLOR", "COMPLETED"};
 
     /**
      * The {@link HelperEx} used in this class.
@@ -109,8 +109,9 @@ public final class SourceEx {
      *
      * @param c Needed by {@link PreferenceManager}.
      */
-    public final ArrayList<HashMap<String, String>> get(final Context c) {
+    public final ArrayList<HashMap<String, String>> get(final Context c, int spinner) {
         final ArrayList<HashMap<String, String>> entriesList = new ArrayList<>();
+        long currentTime = System.currentTimeMillis();
 
         final Cursor cursor = database.query("EXAM", allColumns, null, null,
                 null, null, null);
@@ -123,7 +124,6 @@ public final class SourceEx {
             final HashMap<String, String> temp = new HashMap<>();
             temp.put(allColumns[0], String.valueOf(cursor.getLong(0)));
             for (int i = 1; i < allColumns.length; i++) {
-                // Support upgrades from older versions
                 if (i == 5 && cursor.getString(i) == null)
                     temp.put(allColumns[i], "1420066800000");
                 else
@@ -133,7 +133,17 @@ public final class SourceEx {
                 else
                     temp.put(allColumns[i], cursor.getString(i));
             }
-            entriesList.add(temp);
+            //only if it is in future
+            if(spinner == 0){
+                if(Long.valueOf(temp.get(allColumns[5])).longValue() >= currentTime){
+                    entriesList.add(temp);
+                }
+            }
+            else{
+                if(Long.valueOf(temp.get(allColumns[5])).longValue() < currentTime){
+                    entriesList.add(temp);
+                }
+            }
             cursor.moveToNext();
         }
         cursor.close();

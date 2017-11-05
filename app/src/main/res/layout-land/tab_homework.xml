@@ -49,10 +49,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="200dp"
+            android:layout_marginTop="80dp"
             android:text="@string/no_homework"
             android:textSize="18sp"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <ListView
             android:id="@+id/listViewHomework"

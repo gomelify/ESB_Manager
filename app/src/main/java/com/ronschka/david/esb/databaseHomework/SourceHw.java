@@ -21,7 +21,7 @@ public final class SourceHw {
     /**
      * All columns used in the database.
      */
-    public static final String[] allColumns = {"ID", "HOMEWORK", "SUBJECT", "INFO", "URGENT", "TIME", "COMPLETED", "COLOR"};
+    public static final String[] allColumns = {"ID", "HOMEWORK", "SUBJECT", "INFO", "URGENT", "TIME", "COLOR", "COMPLETED"};
 
     /**
      * The {@link HelperHw} used in this class.
@@ -109,7 +109,7 @@ public final class SourceHw {
      *
      * @param c Needed by {@link android.preference.PreferenceManager}.
      */
-    public final ArrayList<HashMap<String, String>> get(final Context c) {
+    public final ArrayList<HashMap<String, String>> get(final Context c, final int spinner) {
         final ArrayList<HashMap<String, String>> entriesList = new ArrayList<>();
 
         final Cursor cursor = database.query("HOMEWORK", allColumns, null, null,
@@ -133,7 +133,18 @@ public final class SourceHw {
                 else
                     temp.put(allColumns[i], cursor.getString(i));
             }
-            entriesList.add(temp);
+            //only if it is in future
+            if(spinner == 0){
+                if(temp.get(allColumns[7]).equals("false")){
+                    entriesList.add(temp);
+                }
+            }
+            else{
+                if(temp.get(allColumns[7]).equals("true")) {
+                    entriesList.add(temp);
+                }
+            }
+
             cursor.moveToNext();
         }
         cursor.close();
