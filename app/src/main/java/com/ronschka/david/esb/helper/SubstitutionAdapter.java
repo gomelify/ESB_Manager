@@ -2,16 +2,18 @@ package com.ronschka.david.esb.helper;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.ronschka.david.esb.MainActivity;
 import com.ronschka.david.esb.R;
 
 import java.util.ArrayList;
@@ -21,7 +23,6 @@ import java.util.List;
 
 public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapter.SubstitutionRecyclerViewHolders>{
     private ArrayList<String> array;
-    private MainActivity mainActivity;
     private String cancelColor, withOtherColor, roomchangeColor, eventColor, changeColor, specialColor;
     private Context context;
     private ArrayList<String> fullInformation;
@@ -29,11 +30,10 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
     int currentViewType = 0;
     int year = Calendar.getInstance().get(Calendar.YEAR);
 
-    public SubstitutionAdapter(ArrayList<String> array, MainActivity mainAct, Context context) {
+    public SubstitutionAdapter(ArrayList<String> array, Context context) {
         this.context = context;
-        this.mainActivity = mainAct;
         this.array = array;
-        this.date = array.get(10).split(",");
+        this.date = array.get(array.size() - 1).split(",");
 
         //Preference for color values
         final SharedPreferences colors = PreferenceManager.getDefaultSharedPreferences(context);
@@ -71,6 +71,12 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
                 case 4:
                     currentViewType = 4;
                     return 4;
+                case 5:
+                    currentViewType = 5;
+                    return 5;
+                case 6:
+                    currentViewType = 6;
+                    return 6;
                 default:
                     currentViewType = -1;
                     return -1;
@@ -110,6 +116,14 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
                 //extended 3
                 return new SubstitutionRecyclerViewHolders(LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recycler_child_x2, parent, false));
+            case 5:
+                //extended 4
+                return new SubstitutionRecyclerViewHolders(LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.recycler_child_x3, parent, false));
+            case 6:
+                //extended 4
+                return new SubstitutionRecyclerViewHolders(LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.recycler_child_x4, parent, false));
         }
         return null;
     }
@@ -212,7 +226,7 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
                         holder.card1.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                mainActivity.onCreateSubstitutionDetailView(detailEntry);
+                                onCreateSubstitutionDetailView(detailEntry);
                             }
                         });
                         break;
@@ -237,7 +251,7 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
                         holder.card2.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                mainActivity.onCreateSubstitutionDetailView(detailEntry2);
+                                onCreateSubstitutionDetailView(detailEntry2);
                             }
                         });
                         break;
@@ -262,7 +276,57 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
                         holder.card3.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                mainActivity.onCreateSubstitutionDetailView(detailEntry3);
+                                onCreateSubstitutionDetailView(detailEntry3);
+                            }
+                        });
+                        break;
+                    case 4:
+                        //uses to much space
+                        if(strHours.length() > 4){
+                            holder.hour4.setTextSize(22);
+                        }
+
+                        //set data
+                        holder.head4.setText(strHead);
+                        holder.hour4.setText(strHours);
+                        holder.info4.setText(strInfo);
+
+                        //set color
+                        holder.head4.setTextColor(Color.parseColor(strColor));
+                        holder.hour4.setTextColor(Color.parseColor(strColor));
+
+                        final String[] detailEntry4 = {strHead, strHours, strColor, (detailDate + year),
+                                detailClass, detailRoom, detailTeacher, detailInfo};
+
+                        holder.card4.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                onCreateSubstitutionDetailView(detailEntry4);
+                            }
+                        });
+                        break;
+                    case 5:
+                        //uses to much space
+                        if(strHours.length() > 4){
+                            holder.hour5.setTextSize(22);
+                        }
+
+                        //set data
+                        holder.head5.setText(strHead);
+                        holder.hour5.setText(strHours);
+                        holder.info5.setText(strInfo);
+
+                        //set color
+                        holder.head5.setTextColor(Color.parseColor(strColor));
+                        holder.hour5.setTextColor(Color.parseColor(strColor));
+
+                        final String[] detailEntry5 = {strHead, strHours, strColor, (detailDate + year),
+                                detailClass, detailRoom, detailTeacher, detailInfo};
+
+                        holder.card5.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                onCreateSubstitutionDetailView(detailEntry5);
                             }
                         });
                         break;
@@ -325,14 +389,90 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
         return array.size() - 1;
     }
 
+    //detail viewCards for substitution
+    public void onCreateSubstitutionDetailView(String[] detail){
+        //detail Array: 0 case,  1 hours, 2 color, 3 date, 4 class, 5 room, 6 teacher, 7 info
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        final View mView = inflater.inflate(R.layout.activity_substitution_details, null);
+        TextView txtCase = mView.findViewById(R.id.textViewCase);
+        TextView txtHours = mView.findViewById(R.id.textViewHours);
+        TextView txtDate = mView.findViewById(R.id.txtDateDetail);
+        TextView txtClass = mView.findViewById(R.id.txtClassDetail);
+        TextView txtInfo = mView.findViewById(R.id.txtInfoDetail);
+        TextView txtTeacher = mView.findViewById(R.id.txtTeacherDetail);
+        TextView txtRoom = mView.findViewById(R.id.txtRoomDetail);
+
+        //set handed details
+        txtCase.setText(detail[0]);
+        txtCase.setTextColor(Color.parseColor(detail[2]));
+        txtHours.setText(detail[1]);
+        txtHours.setTextColor(Color.parseColor(detail[2]));
+        txtDate.setText(detail[3]);
+        txtClass.setText(detail[4]);
+        txtRoom.setText(detail[5]);
+        txtTeacher.setText(detail[6]);
+        txtInfo.setText(detail[7]);
+
+        if(detail[0].equals("Nachricht des Tages")){
+            txtCase.setText("Nachricht");
+        }
+
+        if(detail[7].equals(" ")){
+            mView.findViewById(R.id.imgDescription).setVisibility(View.GONE);
+            mView.findViewById(R.id.txtViewDescription).setVisibility(View.GONE);
+
+            if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+                RelativeLayout relative = mView.findViewById(R.id.relativeDescription);
+                relative.setVisibility(View.GONE);
+            }
+        }
+
+        if(detail[6].equals(" ")){
+            mView.findViewById(R.id.imgTeacher).setVisibility(View.GONE);
+            mView.findViewById(R.id.txtViewTeacher).setVisibility(View.GONE);
+
+            if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+                RelativeLayout relative = mView.findViewById(R.id.relativeTeacher);
+                relative.setVisibility(View.GONE);
+            }
+        }
+
+        if(detail[5].equals(" ")){
+            mView.findViewById(R.id.imgRoom).setVisibility(View.GONE);
+            mView.findViewById(R.id.txtViewRoom).setVisibility(View.GONE);
+
+            if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+                RelativeLayout relative = mView.findViewById(R.id.relativeRoom);
+                relative.setVisibility(View.GONE);
+            }
+        }
+        if(detail[1].length() > 4){
+            txtHours.setTextSize(28);
+        }
+
+        mBuilder.setView(mView);
+        final AlertDialog dialog = mBuilder.create();
+        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation; //up-down animation
+        dialog.show();
+
+        mView.setOnTouchListener(new OnSwipeTouchListener(context){
+            public void onSwipeBottom() {
+                dialog.dismiss();
+            }
+        });
+    }
 
     public class SubstitutionRecyclerViewHolders extends RecyclerView.ViewHolder{
 
         TextView day, info1, head1, hour1,
                 info2, head2, hour2,
-                info3, head3, hour3;
+                info3, head3, hour3,
+                info4, head4, hour4,
+                info5, head5, hour5;
 
-        LinearLayout card1, card2, card3;
+        LinearLayout card1, card2, card3, card4, card5;
 
         public SubstitutionRecyclerViewHolders(View itemView){
             super(itemView);
@@ -353,6 +493,16 @@ public class SubstitutionAdapter extends RecyclerView.Adapter<SubstitutionAdapte
             hour3 = itemView.findViewById(R.id.txtHour3);
             head3 = itemView.findViewById(R.id.txtHead3);
             info3 = itemView.findViewById(R.id.txtInfoDetail3);
+
+            card4 = itemView.findViewById(R.id.linearDefault4);
+            hour4 = itemView.findViewById(R.id.txtHour4);
+            head4 = itemView.findViewById(R.id.txtHead4);
+            info4 = itemView.findViewById(R.id.txtInfoDetail4);
+
+            card5 = itemView.findViewById(R.id.linearDefault5);
+            hour5 = itemView.findViewById(R.id.txtHour5);
+            head5 = itemView.findViewById(R.id.txtHead5);
+            info5 = itemView.findViewById(R.id.txtInfoDetail5);
         }
     }
 }

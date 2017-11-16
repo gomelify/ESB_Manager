@@ -37,9 +37,9 @@ public class LoginActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_setup);
         // Set up the login form.
-        mUserView = (EditText) findViewById(user);
+        mUserView = findViewById(user);
 
-        mPasswordView = (EditText) findViewById(R.id.password);
+        mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -48,7 +48,7 @@ public class LoginActivity extends AppCompatActivity{
             }
         });
 
-        Button SignInButton = (Button) findViewById(R.id.sign_in_button);
+        Button SignInButton = findViewById(R.id.sign_in_button);
         SignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {

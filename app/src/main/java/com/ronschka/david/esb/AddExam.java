@@ -3,9 +3,7 @@ package com.ronschka.david.esb;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.WindowManager;
@@ -205,47 +203,41 @@ public final class AddExam extends AppCompatActivity{
         final String color;
 
         if(subject.equals("Mathe")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialTeal1);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialIndigo2);
         }
         else if(subject.equals("Deutsch")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialAmber);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialRed1);
         }
         else if(subject.equals("Englisch")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialBlue);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialGreen1);
         }
         else if(subject.equals("Informatik")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialDeepOrange);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialAmber);
         }
         else if(subject.equals("Elektrotechnik")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialGreen);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialRed3);
         }
         else if(subject.equals("Physik")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialIndigo);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialTeal1);
         }
         else if(subject.equals("Wirtschaft")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialPurple);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialBlue2);
         }
         else if(subject.equals("Technische Informatik")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialDeepRed);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialBlue1);
         }
         else if(subject.equals("Gesellschaftslehre")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialPink);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialPink3);
         }
         else if(subject.equals("Religion")){
-            color = getApplicationContext().getResources().getString(0+ R.color.MaterialLightGreen);
+            color = getApplicationContext().getResources().getString(0+ R.color.MaterialPurple2);
         }
         else{
             color = getApplicationContext().getResources().getString(0+ R.color.Grey);
         }
 
         // Entry in database
-        Exam.add(this, ID, homework, subject, time, info, urgent, "", color);
-
-        // Auto-export
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        final boolean autoExport = prefs.getBoolean("pref_autoexport", false);
-        if (autoExport)
-            Exam.exportIt(this, true);
+        Exam.add(this, ID, homework, subject, time, info, urgent, color);
 
         finish();
     }

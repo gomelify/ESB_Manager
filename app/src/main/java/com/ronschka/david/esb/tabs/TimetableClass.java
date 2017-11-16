@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 
-import com.ronschka.david.esb.MainActivity;
 import com.ronschka.david.esb.R;
 import com.ronschka.david.esb.helper.TimeConnectionClass;
 import com.ronschka.david.esb.helper.TimetableAdapter;
@@ -26,14 +25,13 @@ public class TimetableClass {
 
     final private Context context;
     private RecyclerView recyclerView;
-    private MainActivity mainActivity;
     private int spacing;
     private StaggeredGridLayoutManager lLayout;
+    private boolean firstInitialDone = false;
 
-    public TimetableClass(Context context, RecyclerView recyclerView, int spacing, int cardWidth, MainActivity mainActivity) {
+    public TimetableClass(Context context, RecyclerView recyclerView, int spacing, int cardWidth) {
         this.context = context;
         this.recyclerView = recyclerView;
-        this.mainActivity = mainActivity;
         this.spacing = spacing;
         recyclerView.setFocusable(false);
         getConnection(true, cardWidth);
@@ -51,10 +49,23 @@ public class TimetableClass {
         if(!savedSub.equals("noValue")) {
             List<String> savedArray = new ArrayList<>(
                     Arrays.asList(savedSub.split(" HOURSPLIT ")));
-            recyclerView.setVisibility(View.GONE);
-            List<Timetable_Item> rowListItem = getAllItemList(savedArray);
-            recyclerView.setAdapter(new TimetableAdapter(context, rowListItem, cardWidth, mainActivity, recyclerView));
-            runLayoutAnimation(recyclerView);
+            if (initial) {
+                List<Timetable_Item> rowListItem = getAllItemList(savedArray);
+                lLayout = new StaggeredGridLayoutManager(5, StaggeredGridLayoutManager.VERTICAL);
+                recyclerView.setLayoutManager(lLayout);
+
+                TimetableAdapter timetableAdapter = new TimetableAdapter(context, rowListItem, cardWidth, recyclerView);
+                recyclerView.setFocusable(false);
+                recyclerView.setNestedScrollingEnabled(false);
+                recyclerView.addItemDecoration(new SpacesItemDecoration(spacing));
+                recyclerView.setAdapter(timetableAdapter);
+                firstInitialDone = true;
+            } else {
+                recyclerView.setVisibility(View.GONE);
+                List<Timetable_Item> rowListItem = getAllItemList(savedArray);
+                recyclerView.setAdapter(new TimetableAdapter(context, rowListItem, cardWidth, recyclerView));
+                runLayoutAnimation(recyclerView);
+            }
         }
 
         //get the current week
@@ -77,9 +88,6 @@ public class TimetableClass {
             attach = classNumber;
         }
 
-        //TODO test run
-        currentWeek = 42;
-
         //this URL with the class attachment will be parsed
         urlTimetable = "http://www.esb-hamm.de/vertretungsplan/infosystemschueler/infosystemschueler" +
                 "/infosystemschueler/c/" + currentWeek + "/c00" + attach + ".htm";
@@ -97,7 +105,7 @@ public class TimetableClass {
                 SharedPreferences parsedList = PreferenceManager.getDefaultSharedPreferences(context);
 
                 //checks if output was created and is not equal to saved value
-                if(output != null && !output.equals(parsedList.getString("parsedList", "noValue"))) {
+                if(output != null && !output.equals(parsedList.getString("parsedTime", "noValue"))) {
                     SharedPreferences.Editor edit = parsedList.edit();
                     edit.putString("parsedTime", output);
                     edit.apply();
@@ -109,12 +117,12 @@ public class TimetableClass {
                         Log.d("ESBLOG", "OUTPUT ARRAY: " + outputArray.get(x));
                     }
 
-                    if (initial) {
+                    if (initial && !firstInitialDone) {
                         List<Timetable_Item> rowListItem = getAllItemList(outputArray);
                         lLayout = new StaggeredGridLayoutManager(5, StaggeredGridLayoutManager.VERTICAL);
                         recyclerView.setLayoutManager(lLayout);
 
-                        TimetableAdapter timetableAdapter = new TimetableAdapter(context, rowListItem, cardWidth, mainActivity, recyclerView);
+                        TimetableAdapter timetableAdapter = new TimetableAdapter(context, rowListItem, cardWidth, recyclerView);
                         recyclerView.setFocusable(false);
                         recyclerView.setNestedScrollingEnabled(false);
                         recyclerView.addItemDecoration(new SpacesItemDecoration(spacing));
@@ -122,7 +130,7 @@ public class TimetableClass {
                     } else {
                         recyclerView.setVisibility(View.GONE);
                         List<Timetable_Item> rowListItem = getAllItemList(outputArray);
-                        recyclerView.setAdapter(new TimetableAdapter(context, rowListItem, cardWidth, mainActivity, recyclerView));
+                        recyclerView.setAdapter(new TimetableAdapter(context, rowListItem, cardWidth, recyclerView));
                         runLayoutAnimation(recyclerView);
                     }
                 }
@@ -135,7 +143,30 @@ public class TimetableClass {
         List<Timetable_Item> allItems = new ArrayList<>();
         String[] splitterString, splitterString2, splitterString3;
 
-        for(int x = 1; x < input.size(); x++){
+        allItems.add(new Timetable_Item("SP", "T1", "Herr Weid", 2, context));
+        allItems.add(new Timetable_Item("M", "H309","Herr Kuhnert", 2, context));
+        allItems.add(new Timetable_Item("E", "H309","Herr Frau Mues", 1, context));
+        allItems.add(new Timetable_Item("E", "H301","Frau Mues", 2, context));
+        allItems.add(new Timetable_Item("M", "E104", "Herr Kuhnert",2, context));
+        allItems.add(new Timetable_Item("M", "H309","Herr Kuhnert", 1, context));
+        allItems.add(new Timetable_Item("S", "E305", "Frau Schug",2, context));
+        allItems.add(new Timetable_Item("WW", "H309", "Herr Weid",2, context));
+        allItems.add(new Timetable_Item("PHY", "E302","Frau Kell", 2, context));
+        allItems.add(new Timetable_Item("TI", "H003","Frau Fretter", 2, context));
+        allItems.add(new Timetable_Item("S", "E202","Frau Schug", 2, context));
+        allItems.add(new Timetable_Item("D", "H301", "Herr Schwering",2, context));
+        allItems.add(new Timetable_Item("INF", "H113","Herr Spyra", 1, context));
+        allItems.add(new Timetable_Item("INF", "H113","Herr Spyra", 2, context));
+        allItems.add(new Timetable_Item("REL", "H311","Herr SAS/BEK", 2, context));
+        allItems.add(new Timetable_Item("TI", "E204", "Herr Rudolphi",2, context));
+        allItems.add(new Timetable_Item("TI", "H113","Herr Spyra", 1, context));
+        allItems.add(new Timetable_Item("", "", "Herr Müller", 0, context));
+        allItems.add(new Timetable_Item("GMG", "H309", "Frau Niemand",2, context));
+        allItems.add(new Timetable_Item("D", "H309","Herr Schwering", 1, context));
+        allItems.add(new Timetable_Item("", "","Herr Müller", 0, context));
+        allItems.add(new Timetable_Item("ET", "E302","Frau Kell", 2, context));
+
+        /*for(int x = 1; x < input.size(); x++){
            splitterString = input.get(x).split(" SPLIT ");
             for(int y = 1; y < splitterString.length; y++){
                 if(splitterString[y].equals("1) ~ ") || splitterString[y].equals("2) ~ ") ||
@@ -146,7 +177,7 @@ public class TimetableClass {
                         splitterString[y].equals("11) ~ ") || splitterString[y].equals("12) ~ ")){
                     splitterString[y] = "";
                 }
-                if(!splitterString[y].isEmpty()) {
+                else{
                     splitterString2 = splitterString[y].split(" ~ ");
                     int hours;
                     if (splitterString2.length > 1) {
@@ -162,40 +193,44 @@ public class TimetableClass {
                     }else if(splitterString2[0].contains("Veranstaltung")){
                         allItems.add(new Timetable_Item(splitterString2[0], " ", "",
                                 hours / 2, context));
-                    }
-                    else {
-                        allItems.add(new Timetable_Item(splitterString2[0], "", "",
-                                hours / 2, context));
+                    }else {
+                        if(splitterString2[0].contains("1)")){
+                            splitterString2[0] = splitterString2[0].replace("1)", "");
+                        }
+                        else if(splitterString2[0].contains("2)")){
+                            splitterString2[0] = splitterString2[0].replace("2)", "");
+                        }
+                        else if(splitterString2[0].contains("3)")){
+                            splitterString2[0] = splitterString2[0].replace("3)", "");
+                        }
+                        else if(splitterString2[0].contains("4)")){
+                            splitterString2[0] = splitterString2[0].replace("4)", "");
+                        }
+                        else if(splitterString2[0].contains("5)")){
+                            splitterString2[0] = splitterString2[0].replace("5)", "");
+                        }
+                        else if(splitterString2[0].contains("6)")){
+                            splitterString2[0] = splitterString2[0].replace("6)", "");
+                        }
+                        else if(splitterString2[0].contains("7)")){
+                            splitterString2[0] = splitterString2[0].replace("7)", "");
+                        }
+
+                        if (splitterString2[0].split(" ").length == 3) { //normal case e.g. M KUN H301
+                            splitterString3 = splitterString2[0].split(" ");
+
+                            allItems.add(new Timetable_Item(splitterString3[0], splitterString3[2], splitterString3[1],
+                                    hours / 2, context));
+                        } else{
+                            allItems.add(new Timetable_Item(splitterString2[0], "", "",
+                                    hours / 2, context));
+                        }
                     }
                     Log.d("ESBLOG", "SHOW SPLITTER:" + " " + x + " " + splitterString[y]);
                 }
             }
-        }
+        } */
 
-        /*
-        allItems.add(new Timetable_Item("SP", "T1", 2, context.getResources().getString(0+ R.color.MaterialCyan)));
-        allItems.add(new Timetable_Item("M", "H309", 2, context.getResources().getString(0+ R.color.MaterialIndigo)));
-        allItems.add(new Timetable_Item("E", "H309", 1, context.getResources().getString(0+ R.color.MaterialGreen)));
-        allItems.add(new Timetable_Item("E", "H301", 2, context.getResources().getString(0+ R.color.MaterialGreen)));
-        allItems.add(new Timetable_Item("M", "E104", 2, context.getResources().getString(0+ R.color.MaterialIndigo)));
-        allItems.add(new Timetable_Item("M", "H309", 1, context.getResources().getString(0+ R.color.MaterialIndigo)));
-        allItems.add(new Timetable_Item("S", "E305", 2, context.getResources().getString(0+ R.color.MaterialDeepOrange)));
-        allItems.add(new Timetable_Item("WW", "H309", 2, context.getResources().getString(0+ R.color.MaterialPink)));
-        allItems.add(new Timetable_Item("PHY", "E302", 2, context.getResources().getString(0+ R.color.MaterialTeal)));
-        allItems.add(new Timetable_Item("TI", "H003", 2, context.getResources().getString(0+ R.color.MaterialLightBlue)));
-        allItems.add(new Timetable_Item("S", "E202", 2, context.getResources().getString(0+ R.color.MaterialDeepOrange)));
-        allItems.add(new Timetable_Item("D", "H301", 2, context.getResources().getString(0+ R.color.MaterialRed)));
-        allItems.add(new Timetable_Item("INF", "H113", 1, context.getResources().getString(0+ R.color.MaterialAmber)));
-        allItems.add(new Timetable_Item("INF", "H113", 2, context.getResources().getString(0+ R.color.MaterialAmber)));
-        allItems.add(new Timetable_Item("REL", "H311", 2, context.getResources().getString(0+ R.color.MaterialPurple)));
-        allItems.add(new Timetable_Item("TI", "E204", 2, context.getResources().getString(0+ R.color.MaterialLightBlue)));
-        allItems.add(new Timetable_Item("TI", "H113", 1, context.getResources().getString(0+ R.color.MaterialLightBlue)));
-        allItems.add(new Timetable_Item("", "", 0, context.getResources().getString(0+ R.color.MaterialLightBlue)));
-        allItems.add(new Timetable_Item("GMG", "H309", 2, context.getResources().getString(0+ R.color.MaterialPink)));
-        allItems.add(new Timetable_Item("D", "H309", 1, context.getResources().getString(0+ R.color.MaterialRed)));
-        allItems.add(new Timetable_Item("", "", 0, context.getResources().getString(0+ R.color.MaterialLightBlue)));
-        allItems.add(new Timetable_Item("ET", "E302", 2, context.getResources().getString(0+ R.color.MaterialLightGreen)));
-        */
         return allItems;
     }
 

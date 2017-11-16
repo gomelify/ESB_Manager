@@ -63,11 +63,23 @@ public class Timetable_Item {
                 color = context.getResources().getString(0 + R.color.MaterialAmber);
                 return "Informatik";
             case "TI":
-                color = context.getResources().getString(0 + R.color.MaterialBlue);
+                color = context.getResources().getString(0 + R.color.MaterialBlue1);
                 return "Technische Informatik";
             case "S":
                 color = context.getResources().getString(0 + R.color.MaterialPink2);
                 return "Spanisch";
+            case "WW":
+                color = context.getResources().getString(0 + R.color.MaterialBlue2);
+                return "Wirtschaft";
+            case "ET":
+                color = context.getResources().getString(0 + R.color.MaterialRed3);
+                return "Elektrotechnik";
+            case "GMG":
+                color = context.getResources().getString(0 + R.color.MaterialPink3);
+                return "Gesellschaftslehre";
+            case "REL":
+                color = context.getResources().getString(0 + R.color.MaterialPurple2);
+                return "Religion";
             case "Veranstaltung":
                 color = context.getResources().getString(0 + R.color.standardEvent);
                 return "Veranstaltung";

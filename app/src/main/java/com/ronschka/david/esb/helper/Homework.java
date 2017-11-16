@@ -1,17 +1,9 @@
 package com.ronschka.david.esb.helper;
 
 import android.content.Context;
-import android.os.Environment;
 import android.util.Log;
 
-import com.ronschka.david.esb.R;
-import com.ronschka.david.esb.databaseHomework.HelperHw;
 import com.ronschka.david.esb.databaseHomework.SourceHw;
-
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public final class Homework {
 
@@ -62,32 +54,5 @@ public final class Homework {
         } catch (final Exception ex) {
             Log.e("Database", ex.toString());
         }
-    }
-    /**
-     * Exports the homework database.
-     *
-     * @param c    Needed by {@link Utils}.
-     * @param auto Indicates if it's an automatic backup.
-     */
-    public static void exportIt(final Context c, final boolean auto) {
-        // Check if directory exists
-        final File dir = new File(Environment.getExternalStorageDirectory() + "/"
-                + c.getString(R.string.app_name));
-        if (!(dir.exists()))
-            dir.mkdir();
-
-        String stamp = new SimpleDateFormat("yyyy-MM-dd-hh-mm", Locale.US).format(new Date());
-
-        if (auto)
-            stamp = "auto-backup";
-
-        // Path for Database
-        final File srcDB = new File(c.getApplicationInfo().dataDir
-                + "/databases/" + HelperHw.DATABASE_NAME);
-        final File dstDB = new File(Environment.getExternalStorageDirectory() + "/"
-                + c.getString(R.string.app_name) + "/Homework-" + stamp + ".db");
-
-        if (dstDB.exists())
-            dstDB.delete();
     }
 }

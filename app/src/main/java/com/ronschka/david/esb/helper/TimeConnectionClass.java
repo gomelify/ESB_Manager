@@ -40,7 +40,7 @@ public class TimeConnectionClass extends AsyncTask<String, Void, String> {
 
             parsedText = parseTable(doc1);
         } catch (Exception e) {
-            Log.d("ESBLOG", "Internet connection failed!" + e.getMessage());
+            Log.d("ESBLOG", "Internet connection failed! Time" + e.getMessage());
             e.printStackTrace();
         }
 

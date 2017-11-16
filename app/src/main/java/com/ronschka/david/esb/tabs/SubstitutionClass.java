@@ -3,13 +3,13 @@ package com.ronschka.david.esb.tabs;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 
-import com.ronschka.david.esb.MainActivity;
 import com.ronschka.david.esb.R;
 import com.ronschka.david.esb.helper.SubConnectionClass;
 import com.ronschka.david.esb.helper.SubstitutionAdapter;
@@ -23,14 +23,14 @@ public class SubstitutionClass{
     private boolean substitutionRefresh;
     private boolean firstStart;
     final private Context context;
-    final private MainActivity mainAct;
+    final private SwipeRefreshLayout swipeRefreshLayout;
     final private RecyclerView recyclerView;
 
-    public SubstitutionClass(Context context, MainActivity mainAct, RecyclerView recyclerView){
+    public SubstitutionClass(Context context, SwipeRefreshLayout swipeRefreshLayout, RecyclerView recyclerView){
         substitutionRefresh = true;
         firstStart = true;
         this.context = context;
-        this.mainAct = mainAct;
+        this.swipeRefreshLayout = swipeRefreshLayout;
         this.recyclerView = recyclerView;
     }
 
@@ -45,9 +45,10 @@ public class SubstitutionClass{
             ArrayList<String> subList = new ArrayList<>(
                     Arrays.asList(splitter[0].split(" DAYSPLIT ")));
 
-            subList.add(10, splitter[1]); //date information
+            subList.add(subList.size(), splitter[1]); //date information
+
             substitutionRefresh = false;
-            recyclerView.setAdapter(new SubstitutionAdapter(subList, mainAct, context));
+            recyclerView.setAdapter(new SubstitutionAdapter(subList, context));
         }
 
         //get the current week
@@ -77,9 +78,6 @@ public class SubstitutionClass{
             } else{
                 attach = classNumber;
             }
-
-            //TODO test run
-            currentWeek = 42;
 
             //this URL with the class attachment will be parsed
             urlSubCurrent = "http://www.esb-hamm.de/vertretungsplan/vplan/klassen/vplanklassenuntis" +
@@ -116,13 +114,13 @@ public class SubstitutionClass{
                     ArrayList<String> subList = new ArrayList<>(
                             Arrays.asList(splitter[0].split(" DAYSPLIT ")));
 
-                    subList.add(10, splitter[1]); //date information
+                    subList.add(subList.size(), splitter[1]); //date information
                     recyclerView.setItemViewCacheSize(30);
                     recyclerView.setDrawingCacheEnabled(true);
                     recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
                     recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-                    recyclerView.setAdapter(new SubstitutionAdapter(subList, mainAct, context) {
+                    recyclerView.setAdapter(new SubstitutionAdapter(subList, context) {
                     });
 
                     runLayoutAnimation(recyclerView);
@@ -132,7 +130,7 @@ public class SubstitutionClass{
                 }
 
                 firstStart = false;
-                mainAct.stopReloading();
+                swipeRefreshLayout.setRefreshing(false);
             }
         }).execute(url, user, pass); //start parser with following parameter
     }

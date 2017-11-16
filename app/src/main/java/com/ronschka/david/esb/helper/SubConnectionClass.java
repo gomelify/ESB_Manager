@@ -36,35 +36,26 @@ public class SubConnectionClass extends AsyncTask<String, Void, String>{
 
         try{
             //online use
-            Document doc1 = Jsoup.connect(url[0])
-                    .header("Authorization", "Basic " + encoded)
-                    .timeout(5000)
-                    .get();
+            Document doc1 = getDocument(url[0], encoded);
 
             String currentWeek = parseTable(doc1);
             String dateCurrentWeek = getDateOfTable(doc1);
+            parsedText = currentWeek + " DATESPLIT " + dateCurrentWeek;
 
-            if(!url[1].equals(" ")){
-                Document doc2 = Jsoup.connect(url[1])
-                        .header("Authorization", "Basic " + encoded)
-                        .timeout(5000)
-                        .get();
+            Document doc2 = getDocument(url[1], encoded);
 
+            if(doc2 != null){
                 String nextWeek = parseTable(doc2);
                 String dateNextWeek = getDateOfTable(doc2);
 
                 parsedText = currentWeek + " DAYSPLIT " + nextWeek + " DATESPLIT "
                         + dateCurrentWeek + "," + dateNextWeek;
             }
-            else{
-                parsedText = currentWeek + " DATESPLIT " + dateCurrentWeek;
-            }
         }
         catch(Exception e){
-            Log.d("ESBLOG", "Internet connection failed!");
+            Log.d("ESBLOG", "Internet connection failed! Sub");
             e.printStackTrace();
         }
-
         return parsedText;
     }
     @Override
@@ -154,5 +145,19 @@ public class SubConnectionClass extends AsyncTask<String, Void, String>{
         dateBuilder.deleteCharAt(dateBuilder.length() - 1);
 
         return dateBuilder.toString();
+    }
+
+    private Document getDocument(String url, String header){
+        try{
+            Document data = Jsoup.connect(url)
+                    .header("Authorization", "Basic " + header)
+                    .timeout(5000)
+                    .get();
+
+            return data;
+        }
+        catch (Exception e){
+            return null;
+        }
     }
 }

@@ -2,14 +2,13 @@ package com.ronschka.david.esb.databaseExams;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.preference.PreferenceManager;
 
 import com.ronschka.david.esb.helper.Converter;
-import com.ronschka.david.esb.helper.Homework;
+import com.ronschka.david.esb.helper.Exam;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +20,7 @@ public final class SourceEx {
     /**
      * All columns used in the database.
      */
-    public static final String[] allColumns = {"ID", "HOMEWORK", "SUBJECT", "INFO", "URGENT", "TIME", "COLOR", "COMPLETED"};
+    public static final String[] allColumns = {"ID", "HOMEWORK", "SUBJECT", "INFO", "URGENT", "TIME", "COLOR"};
 
     /**
      * The {@link HelperEx} used in this class.
@@ -67,11 +66,10 @@ public final class SourceEx {
      * @param info      Additional information to the homework.
      * @param urgent    Is it urgent?
      * @param color     Color of the rectangle
-     * @param completed Is it completed?
      */
     public final void createEntry(final Context c, final String ID, final String title,
                                   final String subject, final long time, final String info,
-                                  final String urgent, final String color, final String completed) {
+                                  final String urgent, final String color) {
         final ContentValues values = new ContentValues();
         values.put(allColumns[1], title);
         values.put(allColumns[2], subject);
@@ -79,11 +77,10 @@ public final class SourceEx {
         values.put(allColumns[4], urgent);
         values.put(allColumns[5], String.valueOf(time));
         values.put(allColumns[6], color);
-        values.put(allColumns[7], completed);
 
         String insertId = "ID = " + database.insert("EXAM", null, values);
         if (ID != null) {
-            Homework.delete(c, ID);
+            Exam.delete(c, ID);
             insertId = ID;
         }
 
@@ -148,30 +145,15 @@ public final class SourceEx {
         }
         cursor.close();
 
-        // Sort by time
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(c);
-        if (prefs.getBoolean("pref_sortbytime", true))
-            Collections.sort(entriesList, new Comparator<HashMap<String, String>>() {
-
-                @Override
-                public final int compare(final HashMap<String, String> lhs, final HashMap<String, String> rhs) {
-                    final long a = Long.valueOf(lhs.get(allColumns[5])).longValue();
-                    final long b = Long.valueOf(rhs.get(allColumns[5])).longValue();
-                    return Long.valueOf(a).compareTo(Long.valueOf(b));
-                }
-            });
-
-        // Sort by importance
-        if (prefs.getBoolean("pref_sortbyimportance", false))
-            Collections.sort(entriesList, new Comparator<HashMap<String, String>>() {
-
-                @Override
-                public final int compare(final HashMap<String, String> lhs, final HashMap<String, String> rhs) {
-                    final String a = rhs.get(allColumns[4]);
-                    final String b = lhs.get(allColumns[4]);
-                    return a.compareTo(b);
-                }
-            });
+        //sort by time
+        Collections.sort(entriesList, new Comparator<HashMap<String, String>>() {
+            @Override
+            public final int compare(final HashMap<String, String> lhs, final HashMap<String, String> rhs) {
+                final long a = Long.valueOf(lhs.get(allColumns[5])).longValue();
+                final long b = Long.valueOf(rhs.get(allColumns[5])).longValue();
+                return Long.valueOf(a).compareTo(Long.valueOf(b));
+            }
+        });
 
         // Add date, based on time in milliseconds
         for (int i = 0; i < entriesList.size(); i++) {
